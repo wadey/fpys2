@@ -1,10 +1,8 @@
-import base64
-import hashlib
-import hmac
-import time
-import urllib
-import urllib2
+import base64, hashlib, hmac
+import urllib, urllib2
 import logging
+import time
+import xml.etree.ElementTree as ET
 
 log = logging.getLogger("fpys")
 
@@ -16,6 +14,24 @@ def upcase_compare(left, right):
     elif(left > right):
         return 1
     return 0
+
+class FPSResponse(object):
+    def __init__(self, document=None):
+        self.document = document
+
+        self.requestId = document.find("RequestId").text
+
+        if document.find("Status") is not None:
+            if document.find("Status").text == "Success":
+                self.success = True
+            else:
+                self.success = False
+
+        for name in ('CallerTokenId', 'SenderTokenId', 'RecipientTokenId', 'TokenId'):
+            if document.find(name) is not None:
+                attr_name = name[0].lower() + name[1:]
+                setattr(self, attr_name, document.find(name).text)
+
 
 class FlexiblePaymentClient(object):
     def __init__(self, aws_access_key_id, secret_access_key, 
@@ -65,37 +81,38 @@ class FlexiblePaymentClient(object):
         parameters['Version'] = '2007-01-08'
 
         query_str = self.get_signed_query(parameters)
-        log.debug("request_url == %s/?%s" % (fps_url, query_str))
+        log.debug("request_url == %s/?%s" % (self.fps_url, query_str))
 
         response = urllib2.urlopen("%s/?%s" % (self.fps_url, query_str))
         data = response.read()
         response.close()
         log.debug("returned_data == %s" % data)
-        return(data)
+
+        return FPSResponse(ET.parse(data))
         
     def cancelToken(self, token_id, reason=None):
         params = {'Action': 'CancelToken',
                   'TokenId': token_id}
         if reason is not None:
             params['ReasonText'] = reason
-        ct_response = self.execute(params)
+        return self.execute(params)
 
     def discardResults(self):
         pass
 
     def getAccountBalance(self):
         params = {'Action': 'GetAccountBalance'}
-        ab_response = self.execute(params)
+        return self.execute(params)
 
     def getDebtBalance(self, instrument_id):
         params = {'Action': 'GetDebtBalance',
                   'CreditInstrumentId': instrument_id}
-        response = self.execute(params)
+        return self.execute(params)
 
     def getPaymentInstruction(self, token_id):
         params = {'Action': 'GetPaymentInstruction',
                   'TokenId': token_id}
-        pi_response = self.execute(params)
+        return self.execute(params)
 
     def getPipelineUrl(self, 
                        caller_reference, 
@@ -121,7 +138,7 @@ class FlexiblePaymentClient(object):
     def getPrepaidBalance(self, instrument_id):
         params = {'Action': 'GetPrepaidBalance',
                   'PrepaidInstrumentId': instrument_id}
-        response = self.execute(params)
+        return self.execute(params)
 
     def getResults(self):
         pass
@@ -132,7 +149,7 @@ class FlexiblePaymentClient(object):
     def getTokenUsage(self, token_id):
         params = {'Action': 'GetTokenUsage',
                   'TokenId': token_id}
-        response = self.execute(params)
+        return self.execute(params)
 
     def getTransaction(self):
         pass
@@ -152,8 +169,8 @@ class FlexiblePaymentClient(object):
             params['TokenFriendlyName'] = token_friendly_name
         if payment_reason is not None:
             params['PaymentReason'] = payment_reason
-
-        ipi_response = self.execute(params)
+            
+        return self.execute(params)
 
     def installPaymentInstructionBatch(self):
         pass
@@ -161,8 +178,26 @@ class FlexiblePaymentClient(object):
     def payBatch(self):
         pass
 
-    def pay(self):
-        pass
+    def pay(self,
+            caller_token,
+            sender_token,
+            recipient_token,
+            amount,
+            caller_reference,
+            date = None,
+            charge_fee_to='Recipient'):
+        params = {'CallerTokenId': caller_token,
+                  'SenderTokenId': sender_token,
+                  'RecipientTokenId': recipient_token,
+                  'TransactionAmount': amount,
+                  'CallerReference': caller_reference,
+                  'ChargeFeeTo': charge_fee_to
+            }
+
+        if date is not None:
+            params['TransactionDate'] = date
+
+        return self.execute(params)
 
     def refund(self):
         pass
