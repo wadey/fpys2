@@ -56,7 +56,7 @@ class FlexiblePaymentClient(object):
 
     def get_pipeline_signature(self, parameters, path=None):
         if path is None:
-            path = self.pipeline_path = "?"
+            path = self.pipeline_path + "?"
         keys = parameters.keys()
         keys.sort(upcase_compare)
         
