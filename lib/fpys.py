@@ -19,7 +19,10 @@ class FPSResponse(object):
     def __init__(self, document=None):
         self.document = document
 
-        self.requestId = document.find("RequestId").text
+        if document.find("RequestId"):
+            self.requestId = document.find("RequestId").text
+        elif document.find("RequestID"):
+            self.requestId = document.find("RequestID").text
 
         if document.find("Status") is not None:
             if document.find("Status").text == "Success":
@@ -51,17 +54,29 @@ class FlexiblePaymentClient(object):
         log.debug(sig)
         return(sig)
 
-    def get_pipeline_signature(self, parameters):
+    def get_pipeline_signature(self, parameters, path=None):
+        if path is None:
+            path = self.pipeline_path = "?"
         keys = parameters.keys()
         keys.sort(upcase_compare)
         
-        to_sign = self.pipeline_path + "?"
+        to_sign = path
         for k in keys:
             to_sign += "%s=%s&" % (urllib.quote(k), urllib.quote(parameters[k]).replace("/", "%2F"))
         to_sign = to_sign[0:-1]
         log.debug(to_sign)
         return self.sign_string(to_sign)
-        
+
+    def validate_pipeline_signature(self, signature, path, parameters):
+        if parameters.has_key('awsSignature'):
+            del parameters['awsSignature']
+
+        if signature == self.get_pipeline_signature(parameters, path):
+            log.debug("checks out")
+            return True
+        log.debug("you fail")
+        return False
+
     def get_signed_query(self, parameters, signature_name='Signature'):
         keys = parameters.keys()
         keys.sort(upcase_compare)
@@ -83,12 +98,17 @@ class FlexiblePaymentClient(object):
         query_str = self.get_signed_query(parameters)
         log.debug("request_url == %s/?%s" % (self.fps_url, query_str))
 
-        response = urllib2.urlopen("%s/?%s" % (self.fps_url, query_str))
-        data = response.read()
-        response.close()
+        data = None
+        try:
+            response = urllib2.urlopen("%s/?%s" % (self.fps_url, query_str))
+            data = response.read()
+            response.close()
+        except urllib2.HTTPError, httperror:
+            data = httperror.read()
+            httperror.close()
         log.debug("returned_data == %s" % data)
 
-        return FPSResponse(ET.parse(data))
+        return FPSResponse(ET.fromstring(data))
         
     def cancelToken(self, token_id, reason=None):
         params = {'Action': 'CancelToken',
@@ -140,8 +160,13 @@ class FlexiblePaymentClient(object):
                   'PrepaidInstrumentId': instrument_id}
         return self.execute(params)
 
-    def getResults(self):
-        pass
+    def getResults(self, operation=None, max=None):
+        params = {'Action': 'GetResults'}
+        if operation != None:
+            params['Operation'] = operation,
+        if max != None:
+            params['MaxResultsCount'] = max
+        return self.execute(params)
 
     def getTokenByCaller(self):
         pass
@@ -186,10 +211,12 @@ class FlexiblePaymentClient(object):
             caller_reference,
             date = None,
             charge_fee_to='Recipient'):
-        params = {'CallerTokenId': caller_token,
+        params = {'Action': 'Pay',
+                  'CallerTokenId': caller_token,
                   'SenderTokenId': sender_token,
                   'RecipientTokenId': recipient_token,
-                  'TransactionAmount': amount,
+                  'TransactionAmount.Amount': amount,
+                  'TransactionAmount.CurrencyCode': 'USD',
                   'CallerReference': caller_reference,
                   'ChargeFeeTo': charge_fee_to
             }
