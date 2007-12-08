@@ -1,8 +1,12 @@
-import base64, hashlib, hmac
+import base64, hmac, sha
 import urllib, urllib2
 import logging
 import time
-import xml.etree.ElementTree as ET
+
+try:
+    import xml.etree.ElementTree as ET
+except ImportError:
+    import elementtree.ElementTree as ET
 
 log = logging.getLogger("fpys")
 
@@ -50,7 +54,7 @@ class FlexiblePaymentClient(object):
         log.debug("to sign: %s" % string)
         sig = base64.encodestring(hmac.new(self.secret_access_key, 
                                            string, 
-                                           hashlib.sha1).digest()).strip()
+                                           sha).digest()).strip()
         log.debug(sig)
         return(sig)
 
