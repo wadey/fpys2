@@ -51,6 +51,13 @@ class FlexiblePaymentClient(object):
         self.pipeline_path = pipeline_url.split("amazon.com")[1]
 
     def sign_string(self, string):
+        """
+        Strings going to and from the Amazon FPS service must be cryptographically
+        signed to validate the identity of the caller.
+
+        Sign the given string with the secret_access_key using the SHA1 algorithm,
+        Base64 encode the result and strip whitespace.
+        """
         log.debug("to sign: %s" % string)
         sig = base64.encodestring(hmac.new(self.secret_access_key, 
                                            string, 
@@ -59,6 +66,13 @@ class FlexiblePaymentClient(object):
         return(sig)
 
     def get_pipeline_signature(self, parameters, path=None):
+        """
+        Returns the signature for the Amazon FPS Pipeline request that will be
+        made with the given parameters.  Pipeline signatures are calculated with
+        a different algorithm from the REST interface.  Names and values are
+        url encoded and separated with an equal sign, unlike the REST 
+        signature calculation.
+        """
         if path is None:
             path = self.pipeline_path + "?"
         keys = parameters.keys()
@@ -72,6 +86,13 @@ class FlexiblePaymentClient(object):
         return self.sign_string(to_sign)
 
     def validate_pipeline_signature(self, signature, path, parameters):
+        """
+        Generates a pipeline signature for the given parameters and compares
+        it with the provided signature.  If an awsSignature parameter is provided,
+        it is ignored.
+
+        Returns True or False
+        """
         if parameters.has_key('awsSignature'):
             del parameters['awsSignature']
 
@@ -82,6 +103,11 @@ class FlexiblePaymentClient(object):
         return False
 
     def get_signed_query(self, parameters, signature_name='Signature'):
+        """
+        Returns a signed query string ready for use against the FPS REST
+        interface.  Encodes the given parameters and adds a signature 
+        parameter.
+        """
         keys = parameters.keys()
         keys.sort(upcase_compare)
         message = ''
