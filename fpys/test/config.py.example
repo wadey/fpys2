@@ -1,5 +1,5 @@
-# Set the aws_access_key_id and secret_access_key variables appropriately
+# Set the aws_access_key_id and aws_secret_access_key variables appropriately
 fps_url = "https://fps.sandbox.amazonaws.com"
 aws_access_key_id = None
-secret_access_key = None
+aws_secret_access_key = None
 

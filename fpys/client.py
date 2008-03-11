@@ -21,6 +21,8 @@ def upcase_compare(left, right):
 
 class FPSResponse(object):
     def __init__(self, document=None):
+        if document is not None:
+            document = ET.ElementTree(document)
         self.document = document
 
         if document.find("RequestId"):
@@ -34,18 +36,25 @@ class FPSResponse(object):
             else:
                 self.success = False
 
-        for name in ('CallerTokenId', 'SenderTokenId', 'RecipientTokenId', 'TokenId'):
+        for name in ['CallerTokenId', 'SenderTokenId', 'RecipientTokenId', 'TokenId']:
             if document.find(name) is not None:
                 attr_name = name[0].lower() + name[1:]
                 setattr(self, attr_name, document.find(name).text)
 
+        if document.find("AccountBalance"):
+            self.balances = {}
+            for bal in ['TotalBalance', 'PendingInBalance', 'PendingOutBalance', 
+                        'DisburseBalance', 'RefundBalance']:
+                self.balances[bal] = (float(document.find("//" + bal).find("Amount").text),
+                                      document.find("//" + bal).find("CurrencyCode").text)
+            
 
 class FlexiblePaymentClient(object):
-    def __init__(self, aws_access_key_id, secret_access_key, 
+    def __init__(self, aws_access_key_id, aws_secret_access_key, 
                  fps_url="https://fps.sandbox.amazonaws.com",
                  pipeline_url="https://authorize.payments-sandbox.amazon.com/cobranded-ui/actions/start"):
         self.access_key_id = aws_access_key_id
-        self.secret_access_key = secret_access_key
+        self.aws_secret_access_key = aws_secret_access_key
         self.fps_url = fps_url
         self.pipeline_url = pipeline_url
         self.pipeline_path = pipeline_url.split("amazon.com")[1]
@@ -55,11 +64,11 @@ class FlexiblePaymentClient(object):
         Strings going to and from the Amazon FPS service must be cryptographically
         signed to validate the identity of the caller.
 
-        Sign the given string with the secret_access_key using the SHA1 algorithm,
+        Sign the given string with the aws_secret_access_key using the SHA1 algorithm,
         Base64 encode the result and strip whitespace.
         """
         log.debug("to sign: %s" % string)
-        sig = base64.encodestring(hmac.new(self.secret_access_key, 
+        sig = base64.encodestring(hmac.new(self.aws_secret_access_key, 
                                            string, 
                                            sha).digest()).strip()
         log.debug(sig)
