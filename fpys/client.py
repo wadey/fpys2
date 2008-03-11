@@ -38,8 +38,6 @@ class FPSResponse(object):
                 self.errors = []
 
                 for error in document.findall("//Errors/Errors"):
-                    print "parsing errors"
-                    print ET.tostring(error)
                     err = {}
                     err['type'] = error.find("ErrorType").text
                     err['retriable'] = error.find("IsRetriable").text
@@ -145,6 +143,12 @@ class FlexiblePaymentClient(object):
         return urllib.urlencode(parameters)
 
     def execute(self, parameters):
+        """
+        A generic call to the FPS service.  The parameters dictionary
+        is sorted, signed, and turned into a valid FPS REST call.  
+        The response is read via urllib2 and parsed into an FPSResponse object
+        """
+
         parameters['AWSAccessKeyId'] = self.access_key_id
         parameters['SignatureVersion'] = 1
         parameters['Timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -245,6 +249,11 @@ class FlexiblePaymentClient(object):
                                   token_type, 
                                   token_friendly_name=None, 
                                   payment_reason=None):
+        """
+        Install a payment instruction that conforms to the GateKeeper
+        language specification
+        """
+
         params = {'Action': 'InstallPaymentInstruction',
                   'PaymentInstruction': payment_instruction,
                   'CallerReference': caller_reference,

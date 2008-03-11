@@ -92,3 +92,16 @@ def test_installPaymentInstructionInvalid():
     assert response.errors[0]['reason'].startswith("Parse errors")
 
 
+def test_cancelToken():
+    """Cancel a valid token"""
+    token_id = "Z24XPGA4G3IMGV1EL2DL5KDOKQ4WXZJL9175MNR5I5LF1CKH8UMK3R5NFJUEHXMQ"
+    response = fps_client.cancelToken(token_id)
+    assert response.success == True
+
+def test_cancelTokenInvalid():
+    """Cancel an invalid token"""
+    token_id = "INVALID_TOKEN"
+    response = fps_client.cancelToken(token_id)
+    assert response.success == False
+    assert response.errors[0]['errorCode'] == "InvalidParams"
+
