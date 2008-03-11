@@ -35,6 +35,22 @@ class FPSResponse(object):
                 self.success = True
             else:
                 self.success = False
+                self.errors = []
+
+                for error in document.findall("//Errors/Errors"):
+                    print "parsing errors"
+                    print ET.tostring(error)
+                    err = {}
+                    err['type'] = error.find("ErrorType").text
+                    err['retriable'] = error.find("IsRetriable").text
+                    if err['retriable'] == "False":
+                        err['retriable'] = False
+                    else:
+                        err['retriable'] = True
+                    err['errorCode'] = error.find("ErrorCode").text
+                    err['reason'] = error.find("ReasonText").text
+                    self.errors.append(err)
+
 
         for name in ['CallerTokenId', 'SenderTokenId', 'RecipientTokenId', 'TokenId']:
             if document.find(name) is not None:
@@ -166,6 +182,11 @@ class FlexiblePaymentClient(object):
     def getDebtBalance(self, instrument_id):
         params = {'Action': 'GetDebtBalance',
                   'CreditInstrumentId': instrument_id}
+        return self.execute(params)
+
+    def getAllCreditInstruments(self, instrument_status='All'):
+        params = {'Action': 'GetAllCreditInstruments',
+                  'InstrumentStatus': instrument_status}
         return self.execute(params)
 
     def getPaymentInstruction(self, token_id):
