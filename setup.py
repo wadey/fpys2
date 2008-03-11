@@ -9,6 +9,8 @@ setup(name = "FPyS",
       author_email = "tim@digital-achievement.com",
       url = "http://achievewith.us",
       packages = ["fpys", "fyps.tests"],
+      install_requires = ["wsgi_intercept",
+                          ],
       entry_points = {},
       license = 'MIT License',
       long_description = """\
