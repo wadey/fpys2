@@ -2,14 +2,24 @@ from cgi import parse_qs
 
 class FlexiblePaymentService(object):
     def __init__(self):
-        pass
+        self.instruction_installed = False
 
     def process_request(self, environ):
         environ['fps.params'] = parse_qs(environ['QUERY_STRING'])
         return getattr(self, environ['fps.params']['Action'][0])(environ)
 
+    def InstallPaymentInstruction(self, environ):
+        if environ['fps.params']['PaymentInstruction'][0].find("Invalid") != -1:
+            response = """<ns0:InstallPaymentInstructionResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><Status>Failure</Status><Errors><Errors><ErrorType>Business</ErrorType><IsRetriable>false</IsRetriable><ErrorCode>BadRule</ErrorCode><ReasonText>Parse errors: line 1:9: unexpected token: instruction</ReasonText></Errors><Errors><ErrorType>Business</ErrorType><IsRetriable>false</IsRetriable><ErrorCode>BadRule</ErrorCode><ReasonText>Parse errors: expecting \'\'\', found \'&lt;EOF&gt;\'</ReasonText></Errors></Errors><RequestId>23328ff9-3717-4273-8443-607769d2cfcf:0</RequestId></ns0:InstallPaymentInstructionResponse>"""
+        elif self.instruction_installed:
+            response = """<ns0:InstallPaymentInstructionResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><Status>Failure</Status><Errors><Errors><ErrorType>Business</ErrorType><IsRetriable>false</IsRetriable><ErrorCode>DuplicateRequest</ErrorCode><ReasonText>This request is a duplicate of a previous request and cannot be executed.</ReasonText></Errors></Errors><RequestId>46eaa53d-220c-4f63-a14d-1870db5b8375:0</RequestId></ns0:InstallPaymentInstructionResponse>"""
+        else:
+            response = """<ns0:InstallPaymentInstructionResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><TokenId>ZS4X8G44GEIVGVSEN2DI5NDO6Q2WX3JQ9125FNR8IBLF5CFH8ZMT3RLNBJUJH9MN</TokenId><Status>Success</Status><RequestId>b9b7be73-e8d5-40b8-8b7e-25f8f94703d9:0</RequestId></ns0:InstallPaymentInstructionResponse>"""
+            self.instruction_installed = True
+
+        return [response]
+
     def GetAccountBalance(self, environ):
-        print "getting account balance"
         response = """<ns0:GetAccountBalanceResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/">
 <AccountBalance>
  <TotalBalance><CurrencyCode>USD</CurrencyCode><Amount>16.500000</Amount></TotalBalance>

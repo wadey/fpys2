@@ -1,4 +1,5 @@
 import unittest
+import uuid
 from fpys import FlexiblePaymentClient
 
 import wsgi_intercept
@@ -46,7 +47,48 @@ def test_getAccountBalance():
     response = fps_client.getAccountBalance()
     assert 16.5 == response.balances['TotalBalance'][0]
 
-def test_getDebtBalance():
-    response = fps_client.getDebtBalance(instrument_id = "123")
-    assert 0.0 == "blah"
+# def test_getDebtBalance():
+#     response = fps_client.getDebtBalance(instrument_id = "123")
+#     assert 0.0 == "blah"
+
+def test_installPaymentInstruction():
+    """
+    Install a valid instruction
+    """
+
+    unique = "4685bc1eef1311dc952e00142241a3a2"
+
+    # This call should work
+    response = fps_client.installPaymentInstruction(payment_instruction="MyRole == 'Caller';",
+                                                    caller_reference="fpes.achievewith.us_caller" + unique,
+                                                    token_type="Unrestricted",
+                                                    token_friendly_name="fpes.achievewith.us_caller" + unique)
+    assert response.success == True
+    assert response.tokenId == "ZS4X8G44GEIVGVSEN2DI5NDO6Q2WX3JQ9125FNR8IBLF5CFH8ZMT3RLNBJUJH9MN"
+
+
+def test_installPaymentInstructionDuplicate():
+    """Attempt to install a duplicate instruction"""
+    unique = "4685bc1eef1311dc952e00142241a3a2"
+    # This call is a duplicate of the last one, it fails
+    response = fps_client.installPaymentInstruction(payment_instruction="MyRole == 'Caller';",
+                                                    caller_reference="fpes.achievewith.us_caller" + unique,
+                                                    token_type="Unrestricted",
+                                                    token_friendly_name="fpes.achievewith.us_caller" + unique)
+    assert response.success == False
+    assert len(response.errors) == 1
+    assert response.errors[0]['errorCode'] == "DuplicateRequest"
+
+def test_installPaymentInstructionInvalid():
+    """Attempt to install an invalid instruction"""
+    # This call has an invalid instruction
+    unique = "1234567890"
+    response = fps_client.installPaymentInstruction(payment_instruction="Invalid Instruction;",
+                                                    caller_reference="fpes.achievewith.us_caller" + unique,
+                                                    token_type="Unrestricted",
+                                                    token_friendly_name="fpes.achievewith.us_caller" + unique)
+    assert response.success == False
+    assert len(response.errors) == 2
+    assert response.errors[0]['reason'].startswith("Parse errors")
+
 
