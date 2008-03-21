@@ -17,3 +17,5 @@ Platform: UNKNOWN
 Classifier: Development Status :: 3 - AlphaIntended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

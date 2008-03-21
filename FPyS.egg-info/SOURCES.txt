@@ -1,5 +1,6 @@
 AUTHORS.txt
 LICENSE
+QUICKSTART
 README.txt
 ez_setup.py
 setup.py

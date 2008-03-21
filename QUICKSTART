@@ -1,0 +1,125 @@
+= The FPyS Quick Start Guide =
+
+We will accomplish the following:
+
+ * Get an Amazon FPS Account
+ * Install FPyS
+ * Create a caller token
+ * Dissect the response
+ * Learn more
+
+== Get an Amazon FPS Account ==
+
+Before we do anything else, we need an account with the Amazon FPS system.
+
+Follow [http://www.amazon.com/b?ie=UTF8&node=342430011 this URL], read about
+the service, and click "Sign Up for this Web Service."  Before you come back
+to this guide, you will need an AWS Access Key and an AWS Secret Access Key.
+
+== Install FPyS ==
+
+With your access identifiers in hand, we're ready to roll, except you need the FPyS library.
+Here we come to a fork in the road.  Should you use the release version or the development version?
+The library is at a stage now where the development version is highly recommended.  We are still
+in the process of implementing features and tests, so the ground is still shifting a little bit.
+
+Both options outlined here use the Easy Install setuptools package.  You can 
+[http://peak.telecommunity.com/DevCenter/EasyInstall read up on it], or
+[http://peak.telecommunity.com/dist/ez_setup.py download and execute this script] to get started 
+with Easy Install if it isn't already available on your system.
+
+=== Run from a Subversion Check Out (Recommended) ===
+
+This outlines development mode for the FPyS library.  Check out the code and install it:
+
+{{{
+user@host $ svn co http://achievewith.us/svn/public/fpys/trunk FPyS
+...
+user@host $ cd FPyS
+...
+user@host $ sudo python setup.py develop
+...
+}}}
+
+That series of commands checks out the latest FPyS code and makes it available to any 
+Python application, regardless of where it is running on your system.  You can edit and update
+the FPyS code, and your applications will pick up the changes the next time they are restarted.
+
+== Create a caller token ==
+
+To do anything like initiate a payment, three tokens are required.  One of those tokens, the caller
+token, can be reused throughout your application.  Let's create one now since we'll need it often.
+
+{{{
+import fpys
+import uuid
+
+# Variables unique to your code:
+aws_access_key_id = "YOUR_AWS_ACCESS_KEY"
+aws_secret_access_key = "YOUR_SECRET_ACCESS_KEY"
+instruction_name = "fpys_caller_" + uuid.uuid1().hex
+
+# Create a client:
+fps_client = fpys.FlexiblePaymentClient(aws_access_key_id,
+                                        aws_secret_access_key)
+
+# Install the payment instruction:
+response = fps_client.installPaymentInstruction(payment_instruction="MyRole == 'Caller';",
+                                                caller_reference=instruction_name,
+                                                token_type="Unrestricted",
+                                                token_friendly_name=instruction_name)
+# Print the resulting tokenId -- save this for later
+print "\n\nYour caller token:  %s" % response.tokenId
+
+}}}
+
+The payment_instruction value above can be any string that is valid in terms of the FPS
+GateKeeper language.  More information on the GateKeeper language is available in the 
+[http://docs.amazonwebservices.com/AmazonFPS/2007-01-08/FPSDeveloperGuide/ Amazon Flexible Payments Service Developer Guide].
+
+== Dissect the response ==
+
+The FPyS library communicates with Amazon's FPS service using the REST interface.  The responses
+returned by the FPS service are XML documents.  All of the API calls and their response 
+documents are detailed in the 
+[http://docs.amazonwebservices.com/AmazonFPS/2007-01-08/FPSDeveloperGuide/ Amazon Flexible Payments Service Developer Guide].
+
+XML is great and all, but it would be more convenient for most developers to have a more
+Pythonic object return from calls to the service.  For that reason, all calls to the service
+return an FPSResponse object.  The FPSResponse is a loose wrapper around the original XML response
+document that uses ElementTree to parse out the most relevant bits.
+
+{{{
+
+# Install a valid payment instruction
+>>> response = client.installPaymentInstruction(...)
+>>> response.success
+True
+>>> response.tokenId
+the_payment_instruction_token_id
+
+# Install an invalid payment instruction
+>>> response = client.installPaymentInstruction(...invalid arguments...)
+>>> response.success
+False
+>>> len(response.errors)
+2
+>>> response.errors[0]['reason']
+"Parse errors..."
+
+# Get the account balance
+>>> response = client.getAccountBalance()
+>>> response.balances
+{'TotalBalance': (0.0, 'USD'), 'PendingInBalance': (0.0, 'USD')}
+
+# View the original response document
+>>> import xml.etree.ElementTree as ET
+>>> ET.tostring(response.document.getroot())
+}}}
+
+
+== Learn more ==
+
+ * [http://docs.amazonwebservices.com/AmazonFPS/2007-01-08/FPSDeveloperGuide/ Amazon Flexible Payments Service Developer Guide].
+ * [http://developer.amazonwebservices.com/connect/forum.jspa?forumID=35 Amazon FPS Forum]
+ * [wiki:FPeS FPeS Demo Application] A demo application written with [http://turbogears.org TurboGears]
