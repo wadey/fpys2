@@ -1,0 +1,16 @@
+AUTHORS.txt
+LICENSE
+README.txt
+ez_setup.py
+setup.py
+FPyS.egg-info/PKG-INFO
+FPyS.egg-info/SOURCES.txt
+FPyS.egg-info/dependency_links.txt
+FPyS.egg-info/requires.txt
+FPyS.egg-info/top_level.txt
+fpys/__init__.py
+fpys/client.py
+fpys/tests/__init__.py
+fpys/tests/client_test.py
+fpys/tests/config.py.example
+fpys/tests/wsgi_responder.py
