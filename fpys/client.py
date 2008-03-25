@@ -44,10 +44,16 @@ class Token(object):
             self.dateInstalled = datetime.strptime(di,
                                                    "%Y-%m-%dT%H:%M:%S")
 
+class TransactionResponse(object):
+    def __init__(self, id=None, status=None):
+        self.id = id
+        self.status = status
+
 class FPSResponse(object):
     def __init__(self, document=None):
         if document is not None:
             document = ET.ElementTree(document)
+            log.debug(ET.tostring(document.getroot()))
         self.document = document
 
         if document.find("RequestId"):
@@ -90,6 +96,11 @@ class FPSResponse(object):
                         'DisburseBalance', 'RefundBalance']:
                 self.balances[bal] = (float(document.find("//" + bal).find("Amount").text),
                                       document.find("//" + bal).find("CurrencyCode").text)
+
+        if document.getroot().tag.find("PayResponse") >= 0:
+            self.transaction = TransactionResponse()
+            self.transaction.id = document.find("//TransactionId").text
+            self.transaction.status = document.find("//Status").text
             
 
 class FlexiblePaymentClient(object):
@@ -194,7 +205,6 @@ class FlexiblePaymentClient(object):
         except urllib2.HTTPError, httperror:
             data = httperror.read()
             httperror.close()
-        log.debug("returned_data == %s" % data)
 
         return FPSResponse(ET.fromstring(data))
         

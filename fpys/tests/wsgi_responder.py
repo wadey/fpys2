@@ -56,6 +56,9 @@ class FlexiblePaymentService(object):
             self.instruction_installed = True
         return [response]
 
+    def Pay(self, environ):
+        response = """<ns0:PayResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><ns0:TransactionResponse><TransactionId>133I77HJS56JVM7M54OZIRITRVLUT5F227U</TransactionId><Status>Initiated</Status></ns0:TransactionResponse><Status>Success</Status><RequestId>99a81daa-1a13-46eb-872e-98c61bde612e:0</RequestId></ns0:PayResponse>"""
+        return [response]
 
 flexible_payment_service = FlexiblePaymentService()
 
