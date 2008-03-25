@@ -105,3 +105,20 @@ def test_cancelTokenInvalid():
     assert response.success == False
     assert response.errors[0]['errorCode'] == "InvalidParams"
 
+def test_getTokenUsageInvalid():
+    """Retrieve token usage for a SingleUse token"""
+    # GetTokenUsage is only valid for multi-use tokens
+    response = fps_client.getTokenUsage("Z74XLGQ4GSIKGV2ES2DQ5GDOCQZWXIJV9195JNRZIVLFSC1H84M33RDN3JUGHFM5")
+    assert response.success == False
+    assert response.errors[0]['errorCode'] == 'InvalidTokenType'
+
+def test_getTokenUsageUnrestricted():
+    """Retrieve token usage for an unrestricted token"""
+    response = fps_client.getTokenUsage("Z54XNG14GBILGV8EM2D95FDOZQHWX3JT91X5CNR8I3LFICUH88MU3RBNZJUNHGM7")
+    assert response.success == True
+
+def test_getTokenUsage():
+    """Retrieve a token with usage restrictions"""
+    # TODO sample, please?
+    pass
+

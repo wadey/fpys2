@@ -31,9 +31,15 @@ class FlexiblePaymentService(object):
         return [response]
 
     def GetDebtBalance(self, environ):
-        print "getting debt balance"
         response = """<ns0:GetDebtBalanceResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><Status>Failure</Status><Errors><Errors><ErrorType>Business</ErrorType><IsRetriable>false</IsRetriable><ErrorCode>InvalidParams</ErrorCode><ReasonText>CreditInstrumentId : invalid_instrument_id is invalid</ReasonText></Errors></Errors><RequestId>0c26312a-f03f-4aa0-b1d4-5904ceda690a:0</RequestId></ns0:GetDebtBalanceResponse>"""
 
+        return [response]
+
+    def GetTokenUsage(self, environ):
+        if environ['fps.params']['TokenId'][0] == "Z74XLGQ4GSIKGV2ES2DQ5GDOCQZWXIJV9195JNRZIVLFSC1H84M33RDN3JUGHFM5":
+            response = """<ns0:GetTokenUsageResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><Status>Failure</Status><Errors><Errors><ErrorType>Business</ErrorType><IsRetriable>false</IsRetriable><ErrorCode>InvalidTokenType</ErrorCode><ReasonText>Type of token "{0}" is invalid for this operation.</ReasonText></Errors></Errors><RequestId>f2689f79-9848-4980-ba53-74981c25ef89:0</RequestId></ns0:GetTokenUsageResponse>"""
+        elif environ['fps.params']['TokenId'][0] == "Z54XNG14GBILGV8EM2D95FDOZQHWX3JT91X5CNR8I3LFICUH88MU3RBNZJUNHGM7":
+            response = """<ns0:GetTokenUsageResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><Status>Success</Status><RequestId>b48725f7-7842-4a83-a31a-8a728c2e8a6b:0</RequestId></ns0:GetTokenUsageResponse>"""
         return [response]
 
     def InstallPaymentInstruction(self, environ):
