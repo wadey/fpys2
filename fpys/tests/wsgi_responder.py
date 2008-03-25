@@ -42,6 +42,10 @@ class FlexiblePaymentService(object):
             response = """<ns0:GetTokenUsageResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><Status>Success</Status><RequestId>b48725f7-7842-4a83-a31a-8a728c2e8a6b:0</RequestId></ns0:GetTokenUsageResponse>"""
         return [response]
 
+    def GetPaymentInstruction(self, environ):
+        response = """<ns0:GetPaymentInstructionResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><Token><TokenId>ZS4X8G44GEIVGVSEN2DI5NDO6Q2WX3JQ9125FNR8IBLF5CFH8ZMT3RLNBJUJH9MN</TokenId><FriendlyName>fpes.achievewith.us_caller4685bc1eef1311dc952e00142241a3a2</FriendlyName><Status>Active</Status><DateInstalled>2008-03-10T19:31:48.000-07:00</DateInstalled><CallerInstalled>JMXHWUQJONDR53DM28EHVCGFILGI4RGNX541Z9</CallerInstalled><CallerReference>fpes.achievewith.us_caller4685bc1eef1311dc952e00142241a3a2</CallerReference><TokenType>Unrestricted</TokenType><OldTokenId>ZS4X8G44GEIVGVSEN2DI5NDO6Q2WX3JQ9125FNR8IBLF5CFH8ZMT3RLNBJUJH9MN</OldTokenId></Token><PaymentInstruction>MyRole == \'Caller\';</PaymentInstruction><AccountId>JMXHWUQJONDR53DM28EHVCGFILGI4RGNX541Z9</AccountId><TokenFriendlyName>fpes.achievewith.us_caller4685bc1eef1311dc952e00142241a3a2</TokenFriendlyName><Status>Success</Status><RequestId>29a86313-d869-4c94-b5b6-570e95254f10:0</RequestId></ns0:GetPaymentInstructionResponse>"""
+        return [response]
+
     def InstallPaymentInstruction(self, environ):
         if environ['fps.params']['PaymentInstruction'][0].find("Invalid") != -1:
             response = """<ns0:InstallPaymentInstructionResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><Status>Failure</Status><Errors><Errors><ErrorType>Business</ErrorType><IsRetriable>false</IsRetriable><ErrorCode>BadRule</ErrorCode><ReasonText>Parse errors: line 1:9: unexpected token: instruction</ReasonText></Errors><Errors><ErrorType>Business</ErrorType><IsRetriable>false</IsRetriable><ErrorCode>BadRule</ErrorCode><ReasonText>Parse errors: expecting \'\'\', found \'&lt;EOF&gt;\'</ReasonText></Errors></Errors><RequestId>23328ff9-3717-4273-8443-607769d2cfcf:0</RequestId></ns0:InstallPaymentInstructionResponse>"""

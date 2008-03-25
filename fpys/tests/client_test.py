@@ -105,6 +105,15 @@ def test_cancelTokenInvalid():
     assert response.success == False
     assert response.errors[0]['errorCode'] == "InvalidParams"
 
+def test_getPaymentInstruction():
+    """Retrive an existing payment instruciton"""
+    response = fps_client.getPaymentInstruction("ZS4X8G44GEIVGVSEN2DI5NDO6Q2WX3JQ9125FNR8IBLF5CFH8ZMT3RLNBJUJH9MN")
+    assert response.success == True
+    assert response.token is not None
+    assert response.token.status == 'Active'
+    assert response.token.tokenType == 'Unrestricted'
+    assert response.paymentInstruction.startswith("MyRole =")
+
 def test_getTokenUsageInvalid():
     """Retrieve token usage for a SingleUse token"""
     # GetTokenUsage is only valid for multi-use tokens

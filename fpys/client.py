@@ -1,7 +1,10 @@
-import base64, hmac, sha
+import base64
+import hmac
+import sha
 import urllib, urllib2
 import logging
 import time
+from datetime import datetime, tzinfo
 
 try:
     import xml.etree.ElementTree as ET
@@ -18,6 +21,28 @@ def upcase_compare(left, right):
     elif(left > right):
         return 1
     return 0
+
+class Token(object):
+    def __init__(self, document=None):
+        if document is not None:
+            document = ET.ElementTree(document)
+        self.document = document
+
+        for name in ['TokenId', 'FriendlyName', 'Status', 
+                     'DateInstalled', 'CallerInstalled',
+                     'CallerReference', 'TokenType',
+                     'OldTokenId']:
+            if document.find(name) is not None:
+                attr_name = name[0].lower() + name[1:]
+                setattr(self, attr_name, document.find(name).text)
+
+        if hasattr(self, 'dateInstalled'):
+            # TODO this is a little less than ideal
+            # we truncate the milliseconds and time zone info
+            di = self.dateInstalled
+            di = di[0:di.find(".")]
+            self.dateInstalled = datetime.strptime(di,
+                                                   "%Y-%m-%dT%H:%M:%S")
 
 class FPSResponse(object):
     def __init__(self, document=None):
@@ -50,10 +75,14 @@ class FPSResponse(object):
                     self.errors.append(err)
 
 
-        for name in ['CallerTokenId', 'SenderTokenId', 'RecipientTokenId', 'TokenId']:
+        for name in ['CallerTokenId', 'SenderTokenId', 'RecipientTokenId', 'TokenId',
+                     'PaymentInstruction', 'AccountId', 'TokenFriendlyName']:
             if document.find(name) is not None:
                 attr_name = name[0].lower() + name[1:]
                 setattr(self, attr_name, document.find(name).text)
+
+        if document.find("Token"):
+            self.token = Token(document.find("Token"))
 
         if document.find("AccountBalance"):
             self.balances = {}
