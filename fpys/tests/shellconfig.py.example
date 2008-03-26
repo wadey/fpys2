@@ -1,0 +1,3 @@
+aws_access_key_id = "YOUR_KEY"
+aws_secret_access_key = "YOUR_SECRET_ACCESS_KEY"
+default_caller_token = "YOUR_DEFAULT_CALLER_TOKEN"
