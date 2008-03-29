@@ -114,6 +114,25 @@ def test_getPaymentInstruction():
     assert response.token.tokenType == 'Unrestricted'
     assert response.paymentInstruction.startswith("MyRole =")
 
+def test_getTokenByCaller():
+    response = fps_client.getTokenByCaller(token_id='Z34XMGF4GCILGV7EV2D45DDO4Q6WXEJZ9175UNR5I9LFEC1H8MMX3R6NBJUJH8MQ')
+    assert response.success == True
+    assert response.token is not None
+    assert response.token.status == 'Active'
+    assert response.token.friendlyName.startswith("fpes.achievewith.us")
+
+    response = fps_client.getTokenByCaller(token_id='Z44X4G84G1ILGV4ER2DQ5HDO3Q2WXBJS91C5QNREICLF3CZH8SMA3RXN1JUDH9MC')
+    assert response.success == True
+    assert response.token.status == 'Inactive'
+    assert response.token.callerInstalled == 'JMXHWUQJONDR53DM28EHVCGFILGI4RGNX541Z9'
+
+    response = fps_client.getTokenByCaller(caller_reference='fpes.achievewith.us_caller4685bc1eef1311dc952e00142241a3a2')
+    assert response.success == True
+    assert response.token.status == 'Active'
+    assert response.token.dateInstalled.year == 2008
+    assert response.token.dateInstalled.month == 3
+    assert response.token.dateInstalled.day == 10
+
 def test_getTokenUsageInvalid():
     """Retrieve token usage for a SingleUse token"""
     # GetTokenUsage is only valid for multi-use tokens

@@ -271,8 +271,13 @@ class FlexiblePaymentClient(object):
             params['MaxResultsCount'] = max
         return self.execute(params)
 
-    def getTokenByCaller(self):
-        pass
+    def getTokenByCaller(self, token_id=None, caller_reference=None):
+        params = {'Action': 'GetTokenByCaller'}
+        if token_id != None:
+            params['TokenId'] = token_id
+        if caller_reference != None:
+            params['CallerReference'] = caller_reference
+        return self.execute(params)
 
     def getTokenUsage(self, token_id):
         params = {'Action': 'GetTokenUsage',
