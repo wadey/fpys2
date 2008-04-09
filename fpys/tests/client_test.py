@@ -161,6 +161,22 @@ def test_pay():
     assert response.transaction.id == "133I77HJS56JVM7M54OZIRITRVLUT5F227U"
     assert response.transaction.status == "Initiated"
 
+def test_refund():
+    # the following was used to create a new token to authorize the refund
+    #     fps_client.installPaymentInstruction("MyRole == 'Sender';\nOperationType == 'Refund';",
+    #                                          "unit_test_refund_01",
+    #                                          "SingleUse",
+    #                                          "Refund of Test Transaction",
+    #                                          "unit_test_refund_01")
+    response = fps_client.refund(caller_token="Z34XMGF4GCILGV7EV2D45DDO4Q6WXEJZ9175UNR5I9LFEC1H8MMX3R6NBJUJH8MQ",
+                                 refund_sender_token="Z74XVGZ4G2IKGVIE52D453DOEQGWXMJ491V58NR6I3LFQC2H8BM73R8NMJUJHCMN",
+                                 transaction_id="134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC",
+                                 caller_reference="Unit Test Refund",
+                                 refund_amount="19.95")
+    assert response.success == True
+    assert response.transaction.status == "Initiated"
+    assert response.transaction.id == "134P2CRSN5JFN3KDV3RKPKVQ3OG4H67PPR8"
+
 def test_reserve():
     response = fps_client.reserve("Z34XMGF4GCILGV7EV2D45DDO4Q6WXEJZ9175UNR5I9LFEC1H8MMX3R6NBJUJH8MQ",
                                   "2146KQCZ13JKRP8BHCMI7JRHPTBAPZGU2VB9FTJ84UN7UF7LXAE33YJHSDB8XCG2",

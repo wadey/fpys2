@@ -99,7 +99,7 @@ class FPSResponse(object):
 
         # Hackish at best... 
         root_tag = document.getroot().tag
-        for tag_name in ["PayResponse", "ReserveResponse", "SettleResponse"]:
+        for tag_name in ["PayResponse", "RefundResponse", "ReserveResponse", "SettleResponse"]:
             if self.success and root_tag.find(tag_name) >= 0:
                 self.transaction = TransactionResponse()
                 self.transaction.id = document.find("//TransactionId").text
@@ -342,8 +342,28 @@ class FlexiblePaymentClient(object):
 
         return self.execute(params)
 
-    def refund(self):
-        pass
+    def refund(self,
+               caller_token,
+               refund_sender_token,
+               transaction_id,
+               caller_reference,
+               refund_amount=None,
+               date = None,
+               charge_fee_to='Recipient',
+               ):
+        params = {'Action': 'Refund',
+                  'CallerTokenId': caller_token,
+                  'RefundSenderTokenId': refund_sender_token,
+                  'TransactionId': transaction_id,
+                  'CallerReference': caller_reference,
+                  'ChargeFeeTo': charge_fee_to,
+                  }
+        if date is not None:
+            params['TransactionDate'] = date
+        if refund_amount is not None:
+            params['RefundAmount.Amount'] = refund_amount
+            params['RefundAmount.CurrencyCode'] = "USD"
+        return self.execute(params)
 
     def reserve(self,
                 caller_token,
