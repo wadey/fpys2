@@ -70,6 +70,10 @@ class FlexiblePaymentService(object):
         response = """<ns0:PayResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><ns0:TransactionResponse><TransactionId>133I77HJS56JVM7M54OZIRITRVLUT5F227U</TransactionId><Status>Initiated</Status></ns0:TransactionResponse><Status>Success</Status><RequestId>99a81daa-1a13-46eb-872e-98c61bde612e:0</RequestId></ns0:PayResponse>"""
         return [response]
 
+    def Reserve(self, environ):
+        response = """<ns0:ReserveResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><ns0:TransactionResponse><TransactionId>134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC</TransactionId><Status>Initiated</Status></ns0:TransactionResponse><Status>Success</Status><RequestId>cedef0ad-76f0-4604-82bb-ad28020a4ddc:0</RequestId></ns0:ReserveResponse>"""
+        return [response]
+
 flexible_payment_service = FlexiblePaymentService()
 
 

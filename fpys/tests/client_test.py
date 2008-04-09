@@ -160,3 +160,15 @@ def test_pay():
     assert response.success == True
     assert response.transaction.id == "133I77HJS56JVM7M54OZIRITRVLUT5F227U"
     assert response.transaction.status == "Initiated"
+
+def test_reserve():
+    response = fps_client.reserve("Z34XMGF4GCILGV7EV2D45DDO4Q6WXEJZ9175UNR5I9LFEC1H8MMX3R6NBJUJH8MQ",
+                                  "2146KQCZ13JKRP8BHCMI7JRHPTBAPZGU2VB9FTJ84UN7UF7LXAE33YJHSDB8XCG2",
+                                  "Z44XQGE4GAI1GV4E92DU5KDOTQPWXKJC91V5MNRII7LFICFH8HMX3RNNPJU4HCMN",
+                                  "19.95",
+                                  "unit_test_ref_1")
+    assert response.success == True
+    assert response.transaction.status == "Initiated"
+    assert response.transaction.id == "134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC"
+
+    

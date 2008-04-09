@@ -97,7 +97,9 @@ class FPSResponse(object):
                 self.balances[bal] = (float(document.find("//" + bal).find("Amount").text),
                                       document.find("//" + bal).find("CurrencyCode").text)
 
-        if document.getroot().tag.find("PayResponse") >= 0:
+        # Hackish at best... 
+        root_tag = document.getroot().tag
+        if root_tag.find("PayResponse") >= 0 or root_tag.find("ReserveResponse") >= 0:
             self.transaction = TransactionResponse()
             self.transaction.id = document.find("//TransactionId").text
             self.transaction.status = document.find("//Status").text
@@ -342,8 +344,27 @@ class FlexiblePaymentClient(object):
     def refund(self):
         pass
 
-    def reserve(self):
-        pass
+    def reserve(self,
+                caller_token,
+                sender_token,
+                recipient_token,
+                amount,
+                caller_reference,
+                date = None,
+                charge_fee_to='Recipient'):
+        params = {'Action': 'Reserve',
+                  'CallerTokenId': caller_token,
+                  'SenderTokenId': sender_token,
+                  'RecipientTokenId': recipient_token,
+                  'TransactionAmount.Amount': amount,
+                  'TransactionAmount.CurrencyCode': 'USD',
+                  'CallerReference': caller_reference,
+                  'ChargeFeeTo': charge_fee_to,
+                  }
+        if date is not None:
+            params['TransactionDate'] = date
+
+        return self.execute(params)
 
     def retryTransaction(self):
         pass
