@@ -99,11 +99,12 @@ class FPSResponse(object):
 
         # Hackish at best... 
         root_tag = document.getroot().tag
-        if root_tag.find("PayResponse") >= 0 or root_tag.find("ReserveResponse") >= 0:
-            self.transaction = TransactionResponse()
-            self.transaction.id = document.find("//TransactionId").text
-            self.transaction.status = document.find("//Status").text
-            
+        for tag_name in ["PayResponse", "ReserveResponse", "SettleResponse"]:
+            if self.success and root_tag.find(tag_name) >= 0:
+                self.transaction = TransactionResponse()
+                self.transaction.id = document.find("//TransactionId").text
+                self.transaction.status = document.find("//Status").text
+
 
 class FlexiblePaymentClient(object):
     def __init__(self, aws_access_key_id, aws_secret_access_key, 
@@ -369,6 +370,18 @@ class FlexiblePaymentClient(object):
     def retryTransaction(self):
         pass
 
-    def settle(self):
-        pass
+    def settle(self,
+               transaction_id,
+               amount,
+               date = None):
+        params = {'Action': 'Settle',
+                  'ReserveTransactionId': transaction_id,
+                  'TransactionAmount.Amount': amount,
+                  'TransactionAmount.CurrencyCode': 'USD'}
+        if date is not None:
+            params['TransactionDate'] = date
+
+        return self.execute(params)
+
+                  
 

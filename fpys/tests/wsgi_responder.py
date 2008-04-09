@@ -74,6 +74,13 @@ class FlexiblePaymentService(object):
         response = """<ns0:ReserveResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><ns0:TransactionResponse><TransactionId>134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC</TransactionId><Status>Initiated</Status></ns0:TransactionResponse><Status>Success</Status><RequestId>cedef0ad-76f0-4604-82bb-ad28020a4ddc:0</RequestId></ns0:ReserveResponse>"""
         return [response]
 
+    def Settle(self, environ):
+        if environ['fps.params']['TransactionAmount.Amount'][0] == "100.00":
+            response = """<ns0:SettleResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><Status>Failure</Status><Errors><Errors><ErrorType>Business</ErrorType><IsRetriable>false</IsRetriable><ErrorCode>SettleAmountGreaterThanReserveAmount</ErrorCode><ReasonText>Settle Amount "$100.000000" is greater than the Reserve Amount "$19.950000"</ReasonText></Errors></Errors><RequestId>d6449438-af36-441d-9b79-88b3a363f3e0:0</RequestId></ns0:SettleResponse>"""
+        else:
+            response = """<ns0:SettleResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><ns0:TransactionResponse><TransactionId>134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC</TransactionId><Status>Initiated</Status></ns0:TransactionResponse><Status>Success</Status><RequestId>a412e705-389e-4579-ad78-eee5bb611467:0</RequestId></ns0:SettleResponse>"""
+        return[response]
+       
 flexible_payment_service = FlexiblePaymentService()
 
 

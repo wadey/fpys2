@@ -171,4 +171,18 @@ def test_reserve():
     assert response.transaction.status == "Initiated"
     assert response.transaction.id == "134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC"
 
+def test_settle_over_amount():
+    response = fps_client.settle("134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC",
+                                 "100.00")
+    assert response.success == False
+    assert 1 == len(response.errors)
+    assert response.errors[0]['errorCode'] == 'SettleAmountGreaterThanReserveAmount'
+
+def test_settle():
+    response = fps_client.settle("134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC",
+                                 "19.95")
+    assert response.success == True
+    assert response.transaction.id == "134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC"
+    assert response.transaction.status == "Initiated"
+
     
