@@ -314,9 +314,11 @@ class FlexiblePaymentClient(object):
         return self.execute(params)
 
     def installPaymentInstructionBatch(self):
+        """ Not implemented.  See http://fpys.achievewith.us/project/ticket/10 """
         pass
 
     def payBatch(self):
+        """ Not implemented.  See http://fpys.achievewith.us/project/ticket/11"""
         pass
 
     def pay(self,
