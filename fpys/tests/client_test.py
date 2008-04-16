@@ -155,6 +155,14 @@ def test_getTokenUsage():
     # TODO sample, please?
     pass
 
+def test_getTransaction():
+    response = fps_client.getTransaction("135AHMQA9H3NEFJL73GQ33873PLPNGLQZP1")
+    assert response.success == True
+    assert response.transaction.transactionId == "135AHMQA9H3NEFJL73GQ33873PLPNGLQZP1"
+    assert response.transaction.senderName == "Kate M DeHaven"
+    assert response.transaction.operation == "Pay"
+    assert response.transaction.paymentMethod == "CC"
+
 def test_pay():
     """Initiates a payment"""
     response = fps_client.pay(caller_token="Z34XMGF4GCILGV7EV2D45DDO4Q6WXEJZ9175UNR5I9LFEC1H8MMX3R6NBJUJH8MQ",

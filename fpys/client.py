@@ -44,6 +44,12 @@ class Token(object):
             self.dateInstalled = datetime.strptime(di,
                                                    "%Y-%m-%dT%H:%M:%S")
 
+class Transaction(object):
+    def __init__(self, transaction_element):
+        for element in transaction_element.getchildren():
+            attr_name = element.tag[0].lower() + element.tag[1:]
+            setattr(self, attr_name, element.text)
+
 class TransactionResponse(object):
     def __init__(self, id=None, status=None):
         self.id = id
@@ -89,6 +95,9 @@ class FPSResponse(object):
 
         if document.find("Token"):
             self.token = Token(document.find("Token"))
+
+        if document.find("Transaction"):
+            self.transaction = Transaction(document.find("Transaction"))
 
         if document.find("AccountBalance"):
             self.balances = {}
@@ -292,8 +301,10 @@ class FlexiblePaymentClient(object):
                   'TokenId': token_id}
         return self.execute(params)
 
-    def getTransaction(self):
-        pass
+    def getTransaction(self, transaction_id):
+        params = {'Action': 'GetTransaction',
+                  'TransactionId': transaction_id}
+        return self.execute(params)
 
     def installPaymentInstruction(self, 
                                   payment_instruction, 
