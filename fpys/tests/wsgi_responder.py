@@ -15,6 +15,10 @@ class FlexiblePaymentService(object):
             response = """<ns0:CancelTokenResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><Status>Success</Status><RequestId>2a4e67a6-a499-4b3c-b9fa-efd97e117b13:0</RequestId></ns0:CancelTokenResponse>"""
         return [response]
 
+    def DiscardResults(self, environ):
+        response = """<ns0:DiscardResultsResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><Status>Success</Status><RequestId>d80fd512-d5c9-4ee0-90fa-f2af1ac837a2:0</RequestId></ns0:DiscardResultsResponse>"""
+        return [response]
+
     def GetAccountBalance(self, environ):
         response = """<ns0:GetAccountBalanceResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/">
 <AccountBalance>
@@ -76,6 +80,10 @@ class FlexiblePaymentService(object):
 
     def Reserve(self, environ):
         response = """<ns0:ReserveResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><ns0:TransactionResponse><TransactionId>134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC</TransactionId><Status>Initiated</Status></ns0:TransactionResponse><Status>Success</Status><RequestId>cedef0ad-76f0-4604-82bb-ad28020a4ddc:0</RequestId></ns0:ReserveResponse>"""
+        return [response]
+
+    def RetryTransaction(self, environ):
+        response = """ """
         return [response]
 
     def Settle(self, environ):

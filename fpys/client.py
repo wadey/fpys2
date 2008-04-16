@@ -82,7 +82,7 @@ class FPSResponse(object):
 
 
         for name in ['CallerTokenId', 'SenderTokenId', 'RecipientTokenId', 'TokenId',
-                     'PaymentInstruction', 'AccountId', 'TokenFriendlyName']:
+                     'PaymentInstruction', 'AccountId', 'TokenFriendlyName', 'RequestId']:
             if document.find(name) is not None:
                 attr_name = name[0].lower() + name[1:]
                 setattr(self, attr_name, document.find(name).text)
@@ -218,7 +218,12 @@ class FlexiblePaymentClient(object):
             params['ReasonText'] = reason
         return self.execute(params)
 
-    def discardResults(self):
+    def discardResults(self, transaction_ids):
+        params = {'Action':  'DiscardResults',
+                  'TransactionIds': transaction_ids}
+        return self.execute(params)
+
+    def getAccountActivity(self):
         pass
 
     def getAccountBalance(self):
@@ -389,8 +394,10 @@ class FlexiblePaymentClient(object):
 
         return self.execute(params)
 
-    def retryTransaction(self):
-        pass
+    def retryTransaction(self, transaction_id):
+        params = {'Action': 'RetryTransaction',
+                  'OriginalTransactionId': transaction_id}
+        return self.execute(params)
 
     def settle(self,
                transaction_id,

@@ -105,6 +105,11 @@ def test_cancelTokenInvalid():
     assert response.success == False
     assert response.errors[0]['errorCode'] == "InvalidParams"
 
+def test_discardResults():
+    """Test DiscardResults"""
+    response = fps_client.discardResults("135AHMQA9H3NEFJL73GQ33873PLPNGLQZP1")
+    assert response.success == True
+
 def test_getPaymentInstruction():
     """Retrive an existing payment instruciton"""
     response = fps_client.getPaymentInstruction("ZS4X8G44GEIVGVSEN2DI5NDO6Q2WX3JQ9125FNR8IBLF5CFH8ZMT3RLNBJUJH9MN")
@@ -186,6 +191,10 @@ def test_reserve():
     assert response.success == True
     assert response.transaction.status == "Initiated"
     assert response.transaction.id == "134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC"
+
+# def test_retry():
+#     response = fps_client.retryTransaction("123")
+#     assert response.success == True
 
 def test_settle_over_amount():
     response = fps_client.settle("134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC",
