@@ -108,7 +108,8 @@ class FPSResponse(object):
 
         # Hackish at best... 
         root_tag = document.getroot().tag
-        for tag_name in ["PayResponse", "RefundResponse", "ReserveResponse", "SettleResponse"]:
+        for tag_name in ["PayResponse", "RefundResponse", "ReserveResponse",
+                         "RetryTransactionResponse", "SettleResponse"]:
             if self.success and root_tag.find(tag_name) >= 0:
                 self.transaction = TransactionResponse()
                 self.transaction.id = document.find("//TransactionId").text

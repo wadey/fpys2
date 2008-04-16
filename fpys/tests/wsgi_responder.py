@@ -87,7 +87,7 @@ class FlexiblePaymentService(object):
         return [response]
 
     def RetryTransaction(self, environ):
-        response = """ """
+        response = """<ns0:RetryTransactionResponse xmlns:ns0="http://fps.amazonaws.com/doc/2007-01-08/"><ns0:TransactionResponse><TransactionId>134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC</TransactionId><Status>Initiated</Status></ns0:TransactionResponse><Status>Success</Status><RequestId>a412e705-389e-4579-ad78-eee5bb611467:0</RequestId></ns0:RetryTransactionResponse>"""
         return [response]
 
     def Settle(self, environ):

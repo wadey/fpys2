@@ -200,9 +200,10 @@ def test_reserve():
     assert response.transaction.status == "Initiated"
     assert response.transaction.id == "134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC"
 
-# def test_retry():
-#     response = fps_client.retryTransaction("123")
-#     assert response.success == True
+def test_retry():
+    response = fps_client.retryTransaction("123")
+    assert response.success == True
+    assert response.transaction.status == "Initiated"
 
 def test_settle_over_amount():
     response = fps_client.settle("134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC",
