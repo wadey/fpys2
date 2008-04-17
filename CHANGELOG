@@ -1,0 +1,8 @@
+2008-04-17  Tim Freund  <tim@digital-achievement.com>
+
+	* Updated distribution for the 0.5 release.  All previously stubbed
+	methods should now be implemented.  The FPSResponse object has been
+	refactored to avoid a proliferation of special cases.
+
+	
+
