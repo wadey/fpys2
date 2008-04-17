@@ -22,99 +22,51 @@ def upcase_compare(left, right):
         return 1
     return 0
 
-class Token(object):
-    def __init__(self, document=None):
-        if document is not None:
-            document = ET.ElementTree(document)
-        self.document = document
-
-        for name in ['TokenId', 'FriendlyName', 'Status', 
-                     'DateInstalled', 'CallerInstalled',
-                     'CallerReference', 'TokenType',
-                     'OldTokenId']:
-            if document.find(name) is not None:
-                attr_name = name[0].lower() + name[1:]
-                setattr(self, attr_name, document.find(name).text)
-
-        if hasattr(self, 'dateInstalled'):
-            # TODO this is a little less than ideal
-            # we truncate the milliseconds and time zone info
-            di = self.dateInstalled
-            di = di[0:di.find(".")]
-            self.dateInstalled = datetime.strptime(di,
-                                                   "%Y-%m-%dT%H:%M:%S")
-
-class Transaction(object):
-    def __init__(self, transaction_element):
-        for element in transaction_element.getchildren():
-            attr_name = element.tag[0].lower() + element.tag[1:]
-            setattr(self, attr_name, element.text)
-
-class TransactionResponse(object):
-    def __init__(self, id=None, status=None):
-        self.id = id
-        self.status = status
+def attr_name_from_tag(tag_name):
+    # some tag names have an XML namespace that we
+    # aren't really concerned with.  This strips them:
+    tag_name = tag_name[tag_name.find("}")+1:]
+    # Then we lowercase the first letter
+    return tag_name[0].lower() + tag_name[1:]
 
 class FPSResponse(object):
-    def __init__(self, document=None):
-        if document is not None:
-            document = ET.ElementTree(document)
-            log.debug(ET.tostring(document.getroot()))
-        self.document = document
+    def __init__(self, element=None):
+        if element is not None:
+            if isinstance(element, str):
+                element = ET.fromstring(element)
+        self.element = element
 
-        if document.find("RequestId"):
-            self.requestId = document.find("RequestId").text
-        elif document.find("RequestID"):
-            self.requestId = document.find("RequestID").text
-
-        if document.find("Status") is not None:
-            if document.find("Status").text == "Success":
-                self.success = True
+        for child in element.getchildren():
+            if len(child.getchildren()) ==0:
+                value = child.text
+                if child.tag.find("Date") >= 0:
+                    # TODO this is a little less than ideal
+                    # we truncate the milliseconds and time zone info
+                    value = value[0:value.find(".")]
+                    value = datetime.strptime(value,
+                                             "%Y-%m-%dT%H:%M:%S")
+                if child.tag == "Amount":
+                    value = float(child.text)
+                if child.tag.find("Size") >= 0:
+                    value = int(child.text)
+                setattr(self, attr_name_from_tag(child.tag), value)
             else:
-                self.success = False
-                self.errors = []
+                if child.tag == "Errors" and child.getchildren()[0].tag == "Errors":
+                    self.errors = []
+                    for e in child.getchildren():
+                        self.errors.append(FPSResponse(e))
+                elif child.tag =="Transactions":
+                    if not hasattr(self, "transactions"):
+                        self.transactions = []
+                    self.transactions.append(FPSResponse(child))
+                else:
+                    setattr(self, attr_name_from_tag(child.tag), FPSResponse(child))
 
-                for error in document.findall("//Errors/Errors"):
-                    err = {}
-                    err['type'] = error.find("ErrorType").text
-                    err['retriable'] = error.find("IsRetriable").text
-                    if err['retriable'] == "False":
-                        err['retriable'] = False
-                    else:
-                        err['retriable'] = True
-                    err['errorCode'] = error.find("ErrorCode").text
-                    err['reason'] = error.find("ReasonText").text
-                    self.errors.append(err)
-
-
-        for name in ['CallerTokenId', 'SenderTokenId', 'RecipientTokenId', 'TokenId',
-                     'PaymentInstruction', 'AccountId', 'TokenFriendlyName', 'RequestId']:
-            if document.find(name) is not None:
-                attr_name = name[0].lower() + name[1:]
-                setattr(self, attr_name, document.find(name).text)
-
-        if document.find("Token"):
-            self.token = Token(document.find("Token"))
-
-        if document.find("Transaction"):
-            self.transaction = Transaction(document.find("Transaction"))
-
-        if document.find("AccountBalance"):
-            self.balances = {}
-            for bal in ['TotalBalance', 'PendingInBalance', 'PendingOutBalance', 
-                        'DisburseBalance', 'RefundBalance']:
-                self.balances[bal] = (float(document.find("//" + bal).find("Amount").text),
-                                      document.find("//" + bal).find("CurrencyCode").text)
-
-        # Hackish at best... 
-        root_tag = document.getroot().tag
-        for tag_name in ["PayResponse", "RefundResponse", "ReserveResponse",
-                         "RetryTransactionResponse", "SettleResponse"]:
-            if self.success and root_tag.find(tag_name) >= 0:
-                self.transaction = TransactionResponse()
-                self.transaction.id = document.find("//TransactionId").text
-                self.transaction.status = document.find("//Status").text
-
+        if hasattr(self, "status"):
+            self.success = (self.status == "Success")
+        if hasattr(self, "transactionResponse"):
+            setattr(self, "transaction", self.transactionResponse)
+            delattr(self, "transactionResponse")
 
 class FlexiblePaymentClient(object):
     def __init__(self, aws_access_key_id, aws_secret_access_key, 
@@ -233,8 +185,31 @@ class FlexiblePaymentClient(object):
                   'TransactionIds': transaction_ids}
         return self.execute(params)
 
-    def getAccountActivity(self):
-        pass
+    def getAccountActivity(self, start_date, end_date=None,
+                           operation=None, payment_method=None,
+                           max_batch_size=None, response_group="Detail",
+                           sort_order="Descending", role=None,
+                           status=None):
+        params = {'Action': 'GetAccountActivity',
+                  'StartDate': start_date,
+                  'ResponseGroup': response_group,
+                  'SortOrderByDate': sort_order,
+                  }
+        # TODO
+        # these blocks of if statements sprinkled throughout
+        # the client strike me as ugly
+        if end_date is not None:
+            params['EndDate'] = end_date
+        if operation is not None:
+            params['Operation'] = operation
+        if max_batch_size is not None:
+            params['MaxBatchSize'] = max_batch_size
+        if role is not None:
+            params['Role'] = role
+        if status is not None:
+            params['Status'] = status
+
+        return self.execute(params)
 
     def getAccountBalance(self):
         params = {'Action': 'GetAccountBalance'}

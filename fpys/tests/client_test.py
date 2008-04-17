@@ -45,7 +45,7 @@ def test_validate_pipeline_signature():
 
 def test_getAccountBalance():
     response = fps_client.getAccountBalance()
-    assert 16.5 == response.balances['TotalBalance'][0]
+    assert 16.5 == response.accountBalance.totalBalance.amount
 
 # def test_getDebtBalance():
 #     response = fps_client.getDebtBalance(instrument_id = "123")
@@ -77,7 +77,7 @@ def test_installPaymentInstructionDuplicate():
                                                     token_friendly_name="fpes.achievewith.us_caller" + unique)
     assert response.success == False
     assert len(response.errors) == 1
-    assert response.errors[0]['errorCode'] == "DuplicateRequest"
+    assert response.errors[0].errorCode == "DuplicateRequest"
 
 def test_installPaymentInstructionInvalid():
     """Attempt to install an invalid instruction"""
@@ -89,7 +89,7 @@ def test_installPaymentInstructionInvalid():
                                                     token_friendly_name="fpes.achievewith.us_caller" + unique)
     assert response.success == False
     assert len(response.errors) == 2
-    assert response.errors[0]['reason'].startswith("Parse errors")
+    assert response.errors[0].reasonText.startswith("Parse errors")
 
 
 def test_cancelToken():
@@ -103,12 +103,22 @@ def test_cancelTokenInvalid():
     token_id = "INVALID_TOKEN"
     response = fps_client.cancelToken(token_id)
     assert response.success == False
-    assert response.errors[0]['errorCode'] == "InvalidParams"
+    assert response.errors[0].errorCode == "InvalidParams"
 
 def test_discardResults():
     """Test DiscardResults"""
     response = fps_client.discardResults("135AHMQA9H3NEFJL73GQ33873PLPNGLQZP1")
     assert response.success == True
+
+def test_getAccountActivity():
+    response = fps_client.getAccountActivity("2008-04-13")
+    assert response.success == True
+    assert response.responseBatchSize == 8
+    trans = response.transactions[0]
+    assert trans.transactionParts.feePaid.amount == 0.0
+    assert trans.callerTokenId == "Z34XMGF4GCILGV7EV2D45DDO4Q6WXEJZ9175UNR5I9LFEC1H8MMX3R6NBJUJH8MQ"
+    assert trans.operation == "Pay"
+    assert trans.dateReceived.month == 4
 
 def test_getPaymentInstruction():
     """Retrive an existing payment instruciton"""
@@ -143,7 +153,7 @@ def test_getTokenUsageInvalid():
     # GetTokenUsage is only valid for multi-use tokens
     response = fps_client.getTokenUsage("Z74XLGQ4GSIKGV2ES2DQ5GDOCQZWXIJV9195JNRZIVLFSC1H84M33RDN3JUGHFM5")
     assert response.success == False
-    assert response.errors[0]['errorCode'] == 'InvalidTokenType'
+    assert response.errors[0].errorCode == 'InvalidTokenType'
 
 def test_getTokenUsageUnrestricted():
     """Retrieve token usage for an unrestricted token"""
@@ -171,7 +181,7 @@ def test_pay():
                               amount=2.0,
                               caller_reference="FPeS Invoice 37")
     assert response.success == True
-    assert response.transaction.id == "133I77HJS56JVM7M54OZIRITRVLUT5F227U"
+    assert response.transaction.transactionId == "133I77HJS56JVM7M54OZIRITRVLUT5F227U"
     assert response.transaction.status == "Initiated"
 
 def test_refund():
@@ -188,7 +198,7 @@ def test_refund():
                                  refund_amount="19.95")
     assert response.success == True
     assert response.transaction.status == "Initiated"
-    assert response.transaction.id == "134P2CRSN5JFN3KDV3RKPKVQ3OG4H67PPR8"
+    assert response.transaction.transactionId == "134P2CRSN5JFN3KDV3RKPKVQ3OG4H67PPR8"
 
 def test_reserve():
     response = fps_client.reserve("Z34XMGF4GCILGV7EV2D45DDO4Q6WXEJZ9175UNR5I9LFEC1H8MMX3R6NBJUJH8MQ",
@@ -198,7 +208,7 @@ def test_reserve():
                                   "unit_test_ref_1")
     assert response.success == True
     assert response.transaction.status == "Initiated"
-    assert response.transaction.id == "134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC"
+    assert response.transaction.transactionId == "134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC"
 
 def test_retry():
     response = fps_client.retryTransaction("123")
@@ -210,13 +220,13 @@ def test_settle_over_amount():
                                  "100.00")
     assert response.success == False
     assert 1 == len(response.errors)
-    assert response.errors[0]['errorCode'] == 'SettleAmountGreaterThanReserveAmount'
+    assert response.errors[0].errorCode == 'SettleAmountGreaterThanReserveAmount'
 
 def test_settle():
     response = fps_client.settle("134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC",
                                  "19.95")
     assert response.success == True
-    assert response.transaction.id == "134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC"
+    assert response.transaction.transactionId == "134OLF7MHB2L4V9T54RHADQ9FCK5NLVZHDC"
     assert response.transaction.status == "Initiated"
 
-    
+
