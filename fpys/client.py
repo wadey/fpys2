@@ -236,12 +236,18 @@ class FlexiblePaymentClient(object):
                        transaction_amount, 
                        return_url, 
                        pipeline_name="SingleUse", 
+                       recurring_period=None
                        ):
+        """Gets the URL for making a co-branded service request, like in this Java
+        code:
+        http://docs.amazonwebservices.com/AmazonFPS/latest/FPSGettingStartedGuide/index.html?gsMakingCoBrandedUIRequests.html#d0e1242
+        """
         parameters = {'callerReference': caller_reference,
                       'paymentReason': payment_reason,
                       'transactionAmount': transaction_amount,
                       'callerKey': self.access_key_id,
                       'pipelineName': pipeline_name,
+                      'recurringPeriod': recurring_period,
                       'returnURL': return_url
                       }
 
