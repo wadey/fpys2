@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://genshi.edgewall.org/"
+                                           xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<py:def function="header_title">Welcome</py:def>
+<py:def function="page_title">Welcome</py:def>
+<py:def function="page_head_extras"></py:def>
+
+<div py:match="content">
+
+<div class="post">
+ <h2>My Cart</h2>
+
+ <span py:if="len(works) == 0">
+  <p>There are no items in this cart.</p>
+  <h3><a href="/">Continue Shopping</a></h3>
+ </span>
+
+ <span py:if="len(works) != 0">
+  <h3><a href="/">Continue Shopping</a></h3>
+  <h3><a href="/remove_all">Clear Cart</a></h3>
+  <h3><a href="/purchase">Purchase Cart Contents through Amazon FPS</a></h3>
+ </span>
+</div>
+
+ <div class="post" py:for="work in works">
+  <h1>${work.title}</h1>
+  <p><a href="/add/${work.id}"><img src="/static/works/${work.file_path}/small.jpg" 
+                           width="240" 
+                           height="180" 
+                           alt="${work.title}"
+                           class="float-left" /></a></p>
+
+  <p style="height: 150px;">${work.description}<br/>
+   <form action="remove" class="searchform" method="post">
+    <input name="remove" class="button wide" value="Remove from Cart" type="submit" />
+    <input name="id" type="hidden" value="${work.id}"/>
+   </form>
+  </p> 
+
+  <p class="post-footer align-right">					
+   <span>${work.purchases} Purchases</span>
+  </p>
+ </div>
+</div>
+
+<xi:include href="layout.html"/>
+</html>

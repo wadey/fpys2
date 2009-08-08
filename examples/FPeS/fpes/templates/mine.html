@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://genshi.edgewall.org/"
+                                           xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<py:def function="header_title">Welcome</py:def>
+<py:def function="page_title">Welcome</py:def>
+<py:def function="page_head_extras"></py:def>
+
+<div py:match="content">
+
+ <h2>My Images</h2>
+
+ <div class="post" py:for="work in works" style="margin-bottom: 1em;">
+  <h1>${work.title}</h1>
+  <p><a href="/static/works/${work.file_path}/large.jpg"><img src="/static/works/${work.file_path}/small.jpg" 
+                           width="240" 
+                           height="180" 
+                           alt="${work.title}"
+                           class="float-left" /></a></p>
+
+  <p style="height: 150px;">${work.description}<br/>
+  </p> 
+ </div>
+</div>
+
+<xi:include href="layout.html"/>
+</html>
