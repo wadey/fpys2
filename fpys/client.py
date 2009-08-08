@@ -247,10 +247,11 @@ class FlexiblePaymentClient(object):
                       'transactionAmount': transaction_amount,
                       'callerKey': self.access_key_id,
                       'pipelineName': pipeline_name,
-                      'recurringPeriod': recurring_period,
                       'returnURL': return_url
                       }
 
+        if recurring_period is not None:
+            parameters['recurringPeriod'] = recurring_period
         parameters['awsSignature'] = self.get_pipeline_signature(parameters)
         query_string = urllib.urlencode(parameters)
         url = "%s?%s" % (self.pipeline_url, query_string)
