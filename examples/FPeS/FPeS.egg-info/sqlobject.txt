@@ -1,2 +1,0 @@
-db_module=fpes.model
-history_dir=$base/fpes/sqlobject-history
