@@ -296,20 +296,20 @@ class FlexiblePaymentClient(object):
         pass
 
     def pay(self,
-            caller_token,
             sender_token,
             recipient_token,
             amount,
             caller_reference,
             date = None,
+            caller_description = None,
             charge_fee_to='Recipient'):
         params = {'Action': 'Pay',
-                  'CallerTokenId': caller_token,
                   'SenderTokenId': sender_token,
                   'RecipientTokenId': recipient_token,
                   'TransactionAmount.Amount': amount,
                   'TransactionAmount.CurrencyCode': 'USD',
                   'CallerReference': caller_reference,
+                  'CallerDescription': caller_description,
                   'ChargeFeeTo': charge_fee_to,
                   'TransactionDate': date
             }

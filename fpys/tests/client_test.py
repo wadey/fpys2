@@ -164,8 +164,7 @@ def test_getTransaction():
 
 def test_pay():
     """Initiates a payment"""
-    response = fps_client.pay(caller_token="Z34XMGF4GCILGV7EV2D45DDO4Q6WXEJZ9175UNR5I9LFEC1H8MMX3R6NBJUJH8MQ",
-                              sender_token="2646ZQ3Z19JBRPIBXCM97QRHKT6APPGB2VE9ATJD48N7CF1LXNEZ3YFHBDBPXFGM",
+    response = fps_client.pay(sender_token="2646ZQ3Z19JBRPIBXCM97QRHKT6APPGB2VE9ATJD48N7CF1LXNEZ3YFHBDBPXFGM",
                               recipient_token="Z44X4G84G1ILGV4ER2DQ5HDO3Q2WXBJS91C5QNREICLF3CZH8SMA3RXN1JUDH9MC",
                               amount=2.0,
                               caller_reference="FPeS Invoice 37")
