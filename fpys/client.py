@@ -154,6 +154,9 @@ class FlexiblePaymentClient(object):
         The response is read via urllib2 and parsed into an FPSResponse object
         """
 
+        # Throw out parameters that == None
+        parameters = dict([(k,v) for k,v in p.items() if v != None])
+
         parameters['AWSAccessKeyId'] = self.access_key_id
         parameters['SignatureVersion'] = 1
         parameters['Timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -335,11 +338,9 @@ class FlexiblePaymentClient(object):
                   'TransactionAmount.Amount': amount,
                   'TransactionAmount.CurrencyCode': 'USD',
                   'CallerReference': caller_reference,
-                  'ChargeFeeTo': charge_fee_to
+                  'ChargeFeeTo': charge_fee_to,
+                  'TransactionDate': date
             }
-
-        if date is not None:
-            params['TransactionDate'] = date
 
         return self.execute(params)
 
