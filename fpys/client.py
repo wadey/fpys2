@@ -75,6 +75,7 @@ class FlexiblePaymentClient(object):
         self.access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
         self.fps_url = fps_url
+        self.fps_host = fps_url.split("://")[1].split("/")[0]
         self.pipeline_url = pipeline_url
         self.pipeline_path = pipeline_url.split("amazon.com")[1]
         self.pipeline_host = pipeline_url.split("://")[1].split("/")[0]
@@ -108,14 +109,14 @@ class FlexiblePaymentClient(object):
             http_host = self.pipeline_host
 
         keys = parameters.keys()
-        keys.sort(upcase_compare)
+        keys.sort()
 
         parameters_string = "&".join(["%s=%s" % (urllib.quote(k), urllib.quote(str(parameters[k])).replace("/", "%2F")) for k in keys])
         signature_base_string = "\n".join([http_verb, http_host, path, parameters_string])
         log.debug(signature_base_string)
         return self.sign_string(signature_base_string, hashfunc)
 
-    def execute(self, parameters):
+    def execute(self, parameters, sign=True):
         """
         A generic call to the FPS service.  The parameters dictionary
         is sorted, signed, and turned into a valid FPS REST call.  
@@ -125,13 +126,15 @@ class FlexiblePaymentClient(object):
         # Throw out parameters that == None
         parameters = dict([(k,v) for k,v in parameters.items() if v != None])
 
-        parameters['AWSAccessKeyId'] = self.access_key_id
-        parameters['SignatureVersion'] = 2
-        parameters['SignatureMethod'] = 'HmacSHA256'
         parameters['Timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         parameters['Version'] = '2008-09-17'
 
-        parameters['Signature'] = self.get_signature(parameters)
+        if sign:
+            parameters['AWSAccessKeyId'] = self.access_key_id
+            parameters['SignatureVersion'] = 2
+            parameters['SignatureMethod'] = 'HmacSHA256'
+            parameters['Signature'] = self.get_signature(parameters, path='/', http_host=self.fps_host)
+        
         query_str = urllib.urlencode(parameters)
         log.debug("request_url == %s/?%s" % (self.fps_url, query_str))
 
@@ -297,16 +300,16 @@ class FlexiblePaymentClient(object):
 
     def pay(self,
             sender_token,
-            recipient_token,
             amount,
             caller_reference,
+            recipient_token=None,
             date = None,
             caller_description = None,
             charge_fee_to='Recipient'):
         params = {'Action': 'Pay',
                   'SenderTokenId': sender_token,
                   'RecipientTokenId': recipient_token,
-                  'TransactionAmount.Amount': amount,
+                  'TransactionAmount.Value': amount,
                   'TransactionAmount.CurrencyCode': 'USD',
                   'CallerReference': caller_reference,
                   'CallerDescription': caller_description,
@@ -378,6 +381,11 @@ class FlexiblePaymentClient(object):
             params['TransactionDate'] = date
 
         return self.execute(params)
-
-                  
-
+    
+    def verifySignature(self,
+                        url_endpoint,
+                        http_parameters):
+        params = {'Action': 'VerifySignature',
+                  'UrlEndPoint': url_endpoint,
+                  'HttpParameters': http_parameters}
+        return self.execute(params, sign=False)
