@@ -1,6 +1,6 @@
 import base64
 import hmac
-import sha
+import hashlib
 import urllib, urllib2
 import logging
 import time
@@ -77,8 +77,9 @@ class FlexiblePaymentClient(object):
         self.fps_url = fps_url
         self.pipeline_url = pipeline_url
         self.pipeline_path = pipeline_url.split("amazon.com")[1]
+        self.pipeline_host = pipeline_url.split("://")[1].split("/")[0]
 
-    def sign_string(self, string):
+    def sign_string(self, string, hashfunc):
         """
         Strings going to and from the Amazon FPS service must be cryptographically
         signed to validate the identity of the caller.
@@ -89,11 +90,11 @@ class FlexiblePaymentClient(object):
         log.debug("to sign: %s" % string)
         sig = base64.encodestring(hmac.new(self.aws_secret_access_key, 
                                            string, 
-                                           sha).digest()).strip()
+                                           hashfunc).digest()).strip()
         log.debug(sig)
         return(sig)
 
-    def get_pipeline_signature(self, parameters, path=None):
+    def get_signature(self, parameters, path=None, http_verb='GET', http_host=None, hashfunc=hashlib.sha256):
         """
         Returns the signature for the Amazon FPS Pipeline request that will be
         made with the given parameters.  Pipeline signatures are calculated with
@@ -102,50 +103,17 @@ class FlexiblePaymentClient(object):
         signature calculation.
         """
         if path is None:
-            path = self.pipeline_path + "?"
+            path = self.pipeline_path
+        if http_host is None:
+            http_host = self.pipeline_host
+
         keys = parameters.keys()
         keys.sort(upcase_compare)
-        
-        to_sign = path
-        for k in keys:
-            to_sign += "%s=%s&" % (urllib.quote(k), urllib.quote(parameters[k]).replace("/", "%2F"))
-        to_sign = to_sign[0:-1]
-        log.debug(to_sign)
-        return self.sign_string(to_sign)
 
-    def validate_pipeline_signature(self, signature, path, parameters):
-        """
-        Generates a pipeline signature for the given parameters and compares
-        it with the provided signature.  If an awsSignature parameter is provided,
-        it is ignored.
-
-        Returns True or False
-        """
-        if parameters.has_key('awsSignature'):
-            del parameters['awsSignature']
-
-        if signature == self.get_pipeline_signature(parameters, path):
-            log.debug("checks out")
-            return True
-        log.debug("you fail")
-        return False
-
-    def get_signed_query(self, parameters, signature_name='Signature'):
-        """
-        Returns a signed query string ready for use against the FPS REST
-        interface.  Encodes the given parameters and adds a signature 
-        parameter.
-        """
-        keys = parameters.keys()
-        keys.sort(upcase_compare)
-        message = ''
-        for k in keys:
-            message += "%s%s" % (k, parameters[k])
-        sig = self.sign_string(message)
-        log.debug("signature = %s" % sig)
-        
-        parameters[signature_name]  = sig
-        return urllib.urlencode(parameters)
+        parameters_string = "&".join(["%s=%s" % (urllib.quote(k), urllib.quote(str(parameters[k])).replace("/", "%2F")) for k in keys])
+        signature_base_string = "\n".join([http_verb, http_host, path, parameters_string])
+        log.debug(signature_base_string)
+        return self.sign_string(signature_base_string, hashfunc)
 
     def execute(self, parameters):
         """
@@ -155,14 +123,16 @@ class FlexiblePaymentClient(object):
         """
 
         # Throw out parameters that == None
-        parameters = dict([(k,v) for k,v in p.items() if v != None])
+        parameters = dict([(k,v) for k,v in parameters.items() if v != None])
 
         parameters['AWSAccessKeyId'] = self.access_key_id
-        parameters['SignatureVersion'] = 1
+        parameters['SignatureVersion'] = 2
+        parameters['SignatureMethod'] = 'HmacSHA256'
         parameters['Timestamp'] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        parameters['Version'] = '2007-01-08'
+        parameters['Version'] = '2008-09-17'
 
-        query_str = self.get_signed_query(parameters)
+        parameters['Signature'] = self.get_signature(parameters)
+        query_str = urllib.urlencode(parameters)
         log.debug("request_url == %s/?%s" % (self.fps_url, query_str))
 
         data = None
@@ -250,12 +220,14 @@ class FlexiblePaymentClient(object):
                       'transactionAmount': transaction_amount,
                       'callerKey': self.access_key_id,
                       'pipelineName': pipeline_name,
-                      'returnURL': return_url
+                      'returnURL': return_url,
+                      'signatureVersion': 2,
+                      'signatureMethod': 'HmacSHA256'
                       }
 
         if recurring_period is not None:
             parameters['recurringPeriod'] = recurring_period
-        parameters['awsSignature'] = self.get_pipeline_signature(parameters)
+        parameters['signature'] = self.get_signature(parameters)
         query_string = urllib.urlencode(parameters)
         url = "%s?%s" % (self.pipeline_url, query_string)
         log.debug(url)

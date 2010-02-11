@@ -1,6 +1,7 @@
 import unittest
 import uuid
 from fpys import FlexiblePaymentClient
+import hashlib
 
 import wsgi_intercept
 from wsgi_responder import create_fps_service
@@ -17,10 +18,10 @@ fps_client = FlexiblePaymentClient(aws_access_key_id,
 
 def test_sign_string():
     to_sign = "Sign this string, please"
-    signed = "r7ME+3CJWSzzfCBer3Hk9Vlln2Q="
-    assert fps_client.sign_string(to_sign) == signed, "Signed strings do not match"
+    signed = "JBwBZJ1Myf1MDFqQBiiwrQ9CYAbhPGKyZYmXbxgFRwo="
+    assert fps_client.sign_string(to_sign, hashlib.sha256) == signed, "Signed strings do not match"
 
-def test_get_pipeline_signature():
+def test_get_signature():
     parameters = {'callerReference': 'a_caller_reference',
                   'paymentReason': 'a_payment_reason',
                   'transactionAmount': '1000.00',
@@ -28,20 +29,8 @@ def test_get_pipeline_signature():
                   'pipelineName': 'SingleUse',
                   'returnURL': 'http://localhost/capture'
                   }
-    signature = "zZ0RV6OpqpsoVo21UelNUwpwZN8="
-    assert fps_client.get_pipeline_signature(parameters, "/capture") == signature, "Signatures do not match"
-
-def test_validate_pipeline_signature():
-    parameters = {'callerReference': 'a_caller_reference',
-                  'paymentReason': 'a_payment_reason',
-                  'transactionAmount': '1000.00',
-                  'callerKey': aws_access_key_id,
-                  'pipelineName': 'SingleUse',
-                  'returnURL': 'http://localhost/capture'
-                  }
-    signature = "zZ0RV6OpqpsoVo21UelNUwpwZN8="
-    
-    assert fps_client.validate_pipeline_signature(signature, "/capture", parameters)
+    signature = "XhQ1h0ro5eUU2fCZSz4rNNbYDrwHNi4dpfaTe9VrZTE="
+    assert fps_client.get_signature(parameters, "/capture") == signature, "Signatures do not match"
 
 def test_getAccountBalance():
     response = fps_client.getAccountBalance()
