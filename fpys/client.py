@@ -29,6 +29,17 @@ def attr_name_from_tag(tag_name):
     # Then we lowercase the first letter
     return tag_name[0].lower() + tag_name[1:]
 
+class Error(Exception):
+    """Base class for exceptions in this module."""
+    pass
+
+class AmazonError(Error):
+    """Error returned by amazon"""
+    
+    def __init__(self, response):
+        Error.__init__(self, "%s: %s" % (response.errors.error.code, response.errors.error.message))
+        self.response = response
+
 class FPSResponse(object):
     def __init__(self, element=None):
         if element is not None:
@@ -67,6 +78,9 @@ class FPSResponse(object):
         if hasattr(self, "transactionResponse"):
             setattr(self, "transaction", self.transactionResponse)
             delattr(self, "transactionResponse")
+        
+        if hasattr(self, "errors"):
+            raise AmazonError(self)
 
 class FlexiblePaymentClient(object):
     def __init__(self, aws_access_key_id, aws_secret_access_key, 

@@ -1,3 +1,3 @@
 
-from fpys.client import FlexiblePaymentClient
+from fpys.client import FlexiblePaymentClient, Error, AmazonError
 
