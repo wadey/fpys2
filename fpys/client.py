@@ -37,7 +37,10 @@ class AmazonError(Error):
     """Error returned by amazon"""
     
     def __init__(self, response):
-        Error.__init__(self, "%s: %s" % (response.errors.error.code, response.errors.error.message))
+        if isinstance(response.errors, list):
+            Error.__init__(self, "%s: %s" % (response.errors[0].errorCode, response.errors[0].reasonText))
+        else:
+            Error.__init__(self, "%s: %s" % (response.errors.error.code, response.errors.error.message))
         self.response = response
 
 class FPSResponse(object):
