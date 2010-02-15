@@ -13,15 +13,6 @@ except ImportError:
 
 log = logging.getLogger("fpys")
 
-def upcase_compare(left, right):
-    left = left.upper()
-    right = right.upper()
-    if(left < right):
-        return -1
-    elif(left > right):
-        return 1
-    return 0
-
 def attr_name_from_tag(tag_name):
     # some tag names have an XML namespace that we
     # aren't really concerned with.  This strips them:
@@ -165,64 +156,29 @@ class FlexiblePaymentClient(object):
             httperror.close()
 
         return FPSResponse(ET.fromstring(data))
-        
+    
+    def cancel(self, transaction_id, description=None):
+        params = {'Action': 'Cancel',
+                  'TransactionId': transaction_id,
+                  'Description': description}
+        return self.execute(params)
+    
     def cancelToken(self, token_id, reason=None):
         params = {'Action': 'CancelToken',
-                  'TokenId': token_id}
-        if reason is not None:
-            params['ReasonText'] = reason
+                  'TokenId': token_id,
+                  'ReasonText': reason}
         return self.execute(params)
-
-    def discardResults(self, transaction_ids):
-        params = {'Action':  'DiscardResults',
-                  'TransactionIds': transaction_ids}
+    
+    def getReceipientVerificationStatus(self, token_id):
+        params = {'Action': 'GetReceipientVerificationStatus',
+                  'RecipientTokenID': token_id}
         return self.execute(params)
-
-    def getAccountActivity(self, start_date, end_date=None,
-                           operation=None, payment_method=None,
-                           max_batch_size=None, response_group="Detail",
-                           sort_order="Descending", role=None,
-                           status=None):
-        params = {'Action': 'GetAccountActivity',
-                  'StartDate': start_date,
-                  'ResponseGroup': response_group,
-                  'SortOrderByDate': sort_order,
-                  }
-        # TODO
-        # these blocks of if statements sprinkled throughout
-        # the client strike me as ugly
-        if end_date is not None:
-            params['EndDate'] = end_date
-        if operation is not None:
-            params['Operation'] = operation
-        if max_batch_size is not None:
-            params['MaxBatchSize'] = max_batch_size
-        if role is not None:
-            params['Role'] = role
-        if status is not None:
-            params['Status'] = status
-
+    
+    def getTransactionStatus(self, transaction_id):
+        params = {'Action': 'GetTransactionStatus',
+                  'TransactionId': transaction_id}
         return self.execute(params)
-
-    def getAccountBalance(self):
-        params = {'Action': 'GetAccountBalance'}
-        return self.execute(params)
-
-    def getDebtBalance(self, instrument_id):
-        params = {'Action': 'GetDebtBalance',
-                  'CreditInstrumentId': instrument_id}
-        return self.execute(params)
-
-    def getAllCreditInstruments(self, instrument_status='All'):
-        params = {'Action': 'GetAllCreditInstruments',
-                  'InstrumentStatus': instrument_status}
-        return self.execute(params)
-
-    def getPaymentInstruction(self, token_id):
-        params = {'Action': 'GetPaymentInstruction',
-                  'TokenId': token_id}
-        return self.execute(params)
-
+    
     def getPipelineUrl(self, 
                        caller_reference, 
                        payment_reason, 
@@ -253,74 +209,17 @@ class FlexiblePaymentClient(object):
         log.debug(url)
         return url
 
-    def getPrepaidBalance(self, instrument_id):
-        params = {'Action': 'GetPrepaidBalance',
-                  'PrepaidInstrumentId': instrument_id}
-        return self.execute(params)
-
-    def getResults(self, operation=None, max=None):
-        params = {'Action': 'GetResults'}
-        if operation != None:
-            params['Operation'] = operation,
-        if max != None:
-            params['MaxResultsCount'] = max
-        return self.execute(params)
-
     def getTokenByCaller(self, token_id=None, caller_reference=None):
-        params = {'Action': 'GetTokenByCaller'}
-        if token_id != None:
-            params['TokenId'] = token_id
-        if caller_reference != None:
-            params['CallerReference'] = caller_reference
-        return self.execute(params)
-
-    def getTokenUsage(self, token_id):
-        params = {'Action': 'GetTokenUsage',
+        params = {'Action': 'GetTokenByCaller',
+                  'CallerReference': caller_reference,
                   'TokenId': token_id}
         return self.execute(params)
-
-    def getTransaction(self, transaction_id):
-        params = {'Action': 'GetTransaction',
-                  'TransactionId': transaction_id}
-        return self.execute(params)
-
-    def installPaymentInstruction(self, 
-                                  payment_instruction, 
-                                  caller_reference, 
-                                  token_type, 
-                                  token_friendly_name=None, 
-                                  payment_reason=None):
-        """
-        Install a payment instruction that conforms to the GateKeeper
-        language specification
-        """
-
-        params = {'Action': 'InstallPaymentInstruction',
-                  'PaymentInstruction': payment_instruction,
-                  'CallerReference': caller_reference,
-                  'TokenType': token_type,
-                  }
-        if token_friendly_name is not None:
-            params['TokenFriendlyName'] = token_friendly_name
-        if payment_reason is not None:
-            params['PaymentReason'] = payment_reason
-            
-        return self.execute(params)
-
-    def installPaymentInstructionBatch(self):
-        """ Not implemented.  See http://fpys.achievewith.us/project/ticket/10 """
-        pass
-
-    def payBatch(self):
-        """ Not implemented.  See http://fpys.achievewith.us/project/ticket/11"""
-        pass
 
     def pay(self,
             sender_token,
             amount,
             caller_reference,
             recipient_token=None,
-            date = None,
             caller_description = None,
             charge_fee_to='Recipient'):
         params = {'Action': 'Pay',
@@ -331,71 +230,46 @@ class FlexiblePaymentClient(object):
                   'CallerReference': caller_reference,
                   'CallerDescription': caller_description,
                   'ChargeFeeTo': charge_fee_to,
-                  'TransactionDate': date
             }
 
         return self.execute(params)
 
     def refund(self,
-               caller_token,
-               refund_sender_token,
                transaction_id,
                caller_reference,
                refund_amount=None,
-               date = None,
-               charge_fee_to='Recipient',
+               caller_description=None,
                ):
         params = {'Action': 'Refund',
-                  'CallerTokenId': caller_token,
-                  'RefundSenderTokenId': refund_sender_token,
                   'TransactionId': transaction_id,
                   'CallerReference': caller_reference,
-                  'ChargeFeeTo': charge_fee_to,
-                  }
-        if date is not None:
-            params['TransactionDate'] = date
-        if refund_amount is not None:
-            params['RefundAmount.Amount'] = refund_amount
-            params['RefundAmount.CurrencyCode'] = "USD"
+                  'CallerDescription': caller_description,
+                  'RefundAmount.Value': refund_amount,
+                  'RefundAmount.CurrencyCode': (refund_amount and "USD")}
         return self.execute(params)
 
     def reserve(self,
-                caller_token,
                 sender_token,
-                recipient_token,
                 amount,
                 caller_reference,
-                date = None,
-                charge_fee_to='Recipient'):
+                caller_description=None):
         params = {'Action': 'Reserve',
-                  'CallerTokenId': caller_token,
                   'SenderTokenId': sender_token,
-                  'RecipientTokenId': recipient_token,
-                  'TransactionAmount.Amount': amount,
+                  'TransactionAmount.Value': amount,
                   'TransactionAmount.CurrencyCode': 'USD',
                   'CallerReference': caller_reference,
-                  'ChargeFeeTo': charge_fee_to,
+                  'CallerDescription': caller_description
                   }
-        if date is not None:
-            params['TransactionDate'] = date
 
-        return self.execute(params)
-
-    def retryTransaction(self, transaction_id):
-        params = {'Action': 'RetryTransaction',
-                  'OriginalTransactionId': transaction_id}
         return self.execute(params)
 
     def settle(self,
                transaction_id,
-               amount,
-               date = None):
+               amount=None):
         params = {'Action': 'Settle',
                   'ReserveTransactionId': transaction_id,
-                  'TransactionAmount.Amount': amount,
-                  'TransactionAmount.CurrencyCode': 'USD'}
-        if date is not None:
-            params['TransactionDate'] = date
+                  'TransactionAmount.Value': amount,
+                  'TransactionAmount.CurrencyCode': (amount and 'USD')}
 
         return self.execute(params)
     
