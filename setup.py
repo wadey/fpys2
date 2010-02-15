@@ -2,14 +2,14 @@ from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup, find_packages
 
-setup(name = "FPyS",
+setup(name = "FPyS2",
       version = "0.5",
-      description = "Amazon FPS Library",
-      author = "Tim Freund",
-      author_email = "tim@digital-achievement.com",
-      url = "http://fpys.achievewith.us",
-      packages = ["fpys"],
-      test_suite = "fpys.tests",
+      description = "Amazon FPS Library (version 2008-09-17)",
+      author = "Wade Simmons",
+      author_email = "wade@wades.im",
+      url = "http://github.com/wadey/fpys2",
+      packages = ["fpys2"],
+      test_suite = "fpys2.tests",
       install_requires = ["wsgi_intercept",
                           ],
       entry_points = {},

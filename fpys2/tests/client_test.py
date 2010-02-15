@@ -1,6 +1,6 @@
 import unittest
 import uuid
-from fpys import FlexiblePaymentClient
+from fpys2 import FlexiblePaymentClient
 import hashlib
 
 import wsgi_intercept

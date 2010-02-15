@@ -10,7 +10,7 @@
 
 
 import shellconfig
-from fpys.client import *
+from fpys2.client import *
 import xml.etree.ElementTree as ET
 
 fps_client = FlexiblePaymentClient(shellconfig.aws_access_key_id,

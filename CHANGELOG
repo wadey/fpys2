@@ -1,3 +1,8 @@
+2010-02-15  Wade Simmons <wade@wades.im>
+
+    * Fork project as fpys2, start converting to the newer 2008-09-17
+    version of the API
+
 2008-04-17  Tim Freund  <tim@digital-achievement.com>
 
 	* Updated distribution for the 0.5 release.  All previously stubbed

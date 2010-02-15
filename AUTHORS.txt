@@ -1,4 +1,4 @@
-FPyS Contributors:
+FPyS2 Contributors:
 
 - Tim Freund <tim@digital-achievement.com>
-- You?
+- Wade Simmons <wade@wades.im>
