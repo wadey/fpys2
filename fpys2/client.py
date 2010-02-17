@@ -11,9 +11,9 @@ try:
 except ImportError:
     import elementtree.ElementTree as ET
 
-log = logging.getLogger("fpys")
+_log = logging.getLogger("fpys")
 
-def attr_name_from_tag(tag_name):
+def _attr_name_from_tag(tag_name):
     # some tag names have an XML namespace that we
     # aren't really concerned with.  This strips them:
     tag_name = tag_name[tag_name.find("}")+1:]
@@ -54,7 +54,7 @@ class FPSResponse(object):
                     value = float(child.text)
                 if child.tag.find("Size") >= 0:
                     value = int(child.text)
-                setattr(self, attr_name_from_tag(child.tag), value)
+                setattr(self, _attr_name_from_tag(child.tag), value)
             else:
                 if child.tag == "Errors" and child.getchildren()[0].tag == "Errors":
                     self.errors = []
@@ -65,7 +65,7 @@ class FPSResponse(object):
                         self.transactions = []
                     self.transactions.append(FPSResponse(child))
                 else:
-                    setattr(self, attr_name_from_tag(child.tag), FPSResponse(child))
+                    setattr(self, _attr_name_from_tag(child.tag), FPSResponse(child))
 
         if hasattr(self, "status"):
             self.success = (self.status == "Success")
@@ -96,11 +96,11 @@ class FlexiblePaymentClient(object):
         Sign the given string with the aws_secret_access_key using the SHA1 algorithm,
         Base64 encode the result and strip whitespace.
         """
-        log.debug("to sign: %s" % string)
+        _log.debug("to sign: %s" % string)
         sig = base64.encodestring(hmac.new(self.aws_secret_access_key, 
                                            string, 
                                            hashfunc).digest()).strip()
-        log.debug(sig)
+        _log.debug(sig)
         return(sig)
 
     def get_signature(self, parameters, path=None, http_verb='GET', http_host=None, hashfunc=hashlib.sha256):
@@ -121,7 +121,7 @@ class FlexiblePaymentClient(object):
 
         parameters_string = "&".join(["%s=%s" % (urllib.quote(k), urllib.quote(str(parameters[k])).replace("/", "%2F")) for k in keys])
         signature_base_string = "\n".join([http_verb, http_host, path, parameters_string])
-        log.debug(signature_base_string)
+        _log.debug(signature_base_string)
         return self.sign_string(signature_base_string, hashfunc)
 
     def execute(self, parameters, sign=True):
@@ -144,7 +144,7 @@ class FlexiblePaymentClient(object):
             parameters['Signature'] = self.get_signature(parameters, path='/', http_host=self.fps_host)
         
         query_str = urllib.urlencode(parameters)
-        log.debug("request_url == %s/?%s" % (self.fps_url, query_str))
+        _log.debug("request_url == %s/?%s" % (self.fps_url, query_str))
 
         data = None
         try:
@@ -163,23 +163,23 @@ class FlexiblePaymentClient(object):
                   'Description': description}
         return self.execute(params)
     
-    def cancelToken(self, token_id, reason=None):
+    def cancel_token(self, token_id, reason=None):
         params = {'Action': 'CancelToken',
                   'TokenId': token_id,
                   'ReasonText': reason}
         return self.execute(params)
     
-    def getReceipientVerificationStatus(self, token_id):
+    def get_receipient_verification_status(self, token_id):
         params = {'Action': 'GetReceipientVerificationStatus',
                   'RecipientTokenID': token_id}
         return self.execute(params)
     
-    def getTransactionStatus(self, transaction_id):
+    def get_transaction_status(self, transaction_id):
         params = {'Action': 'GetTransactionStatus',
                   'TransactionId': transaction_id}
         return self.execute(params)
     
-    def getPipelineUrl(self, 
+    def get_pipeline_url(self, 
                        caller_reference, 
                        payment_reason, 
                        transaction_amount, 
@@ -206,10 +206,10 @@ class FlexiblePaymentClient(object):
         parameters['signature'] = self.get_signature(parameters)
         query_string = urllib.urlencode(parameters)
         url = "%s?%s" % (self.pipeline_url, query_string)
-        log.debug(url)
+        _log.debug(url)
         return url
 
-    def getTokenByCaller(self, token_id=None, caller_reference=None):
+    def get_token_by_caller(self, token_id=None, caller_reference=None):
         params = {'Action': 'GetTokenByCaller',
                   'CallerReference': caller_reference,
                   'TokenId': token_id}
@@ -273,7 +273,7 @@ class FlexiblePaymentClient(object):
 
         return self.execute(params)
     
-    def verifySignature(self,
+    def verify_signature(self,
                         url_endpoint,
                         http_parameters):
         params = {'Action': 'VerifySignature',

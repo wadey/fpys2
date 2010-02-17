@@ -32,32 +32,32 @@ def test_get_signature():
     signature = "XhQ1h0ro5eUU2fCZSz4rNNbYDrwHNi4dpfaTe9VrZTE="
     assert fps_client.get_signature(parameters, "/capture") == signature, "Signatures do not match"
 
-def test_cancelToken():
+def test_cancel_token():
     """Cancel a valid token"""
     token_id = "Z24XPGA4G3IMGV1EL2DL5KDOKQ4WXZJL9175MNR5I5LF1CKH8UMK3R5NFJUEHXMQ"
-    response = fps_client.cancelToken(token_id)
+    response = fps_client.cancel_token(token_id)
     assert response.success == True
 
-def test_cancelTokenInvalid():
+def test_cancel_token_invalid():
     """Cancel an invalid token"""
     token_id = "INVALID_TOKEN"
-    response = fps_client.cancelToken(token_id)
+    response = fps_client.cancel_token(token_id)
     assert response.success == False
     assert response.errors[0].errorCode == "InvalidParams"
 
-def test_getTokenByCaller():
-    response = fps_client.getTokenByCaller(token_id='Z34XMGF4GCILGV7EV2D45DDO4Q6WXEJZ9175UNR5I9LFEC1H8MMX3R6NBJUJH8MQ')
+def test_get_token_by_caller():
+    response = fps_client.get_token_by_caller(token_id='Z34XMGF4GCILGV7EV2D45DDO4Q6WXEJZ9175UNR5I9LFEC1H8MMX3R6NBJUJH8MQ')
     assert response.success == True
     assert response.token is not None
     assert response.token.status == 'Active'
     assert response.token.friendlyName.startswith("fpes.achievewith.us")
 
-    response = fps_client.getTokenByCaller(token_id='Z44X4G84G1ILGV4ER2DQ5HDO3Q2WXBJS91C5QNREICLF3CZH8SMA3RXN1JUDH9MC')
+    response = fps_client.get_token_by_caller(token_id='Z44X4G84G1ILGV4ER2DQ5HDO3Q2WXBJS91C5QNREICLF3CZH8SMA3RXN1JUDH9MC')
     assert response.success == True
     assert response.token.status == 'Inactive'
     assert response.token.callerInstalled == 'JMXHWUQJONDR53DM28EHVCGFILGI4RGNX541Z9'
 
-    response = fps_client.getTokenByCaller(caller_reference='fpes.achievewith.us_caller4685bc1eef1311dc952e00142241a3a2')
+    response = fps_client.get_token_by_caller(caller_reference='fpes.achievewith.us_caller4685bc1eef1311dc952e00142241a3a2')
     assert response.success == True
     assert response.token.status == 'Active'
     assert response.token.dateInstalled.year == 2008
